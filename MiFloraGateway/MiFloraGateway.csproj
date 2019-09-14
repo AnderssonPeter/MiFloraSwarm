@@ -7,13 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="NewFolder\**" />
-    <Content Remove="NewFolder\**" />
-    <EmbeddedResource Remove="NewFolder\**" />
-    <None Remove="NewFolder\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="ClientApp\src\Client.ts" />
     <None Remove="ClientApp\src\Common.ts" />
     <None Remove="ClientApp\src\Main.test.tsx" />

@@ -28,5 +28,19 @@ namespace MiFloraGateway
         {
             return (TEnum)Enum.Parse(typeof(TEnum), name);
         }
+        public static TAttribute GetAttribute<TAttribute>(TEnum value) where TAttribute : Attribute
+        {
+            return (TAttribute)(typeof(TEnum).GetMember(value.ToString()).Single().GetCustomAttributes(typeof(TAttribute), false).Single());
+        }
+
+    }
+
+    public static class EnumExtensionMethods
+    {
+
+        public static TAttribute GetAttribute<TEnum, TAttribute>(this TEnum value) where TAttribute : Attribute where TEnum : Enum
+        {
+            return (TAttribute)(typeof(TEnum).GetMember(value.ToString()).Single().GetCustomAttributes(typeof(TAttribute), false).Single());
+        }
     }
 }
