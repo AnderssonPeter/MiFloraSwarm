@@ -77,6 +77,8 @@ void WebServerManager::getDeviceInformation()
     auto result = this->onGetDeviceInformationHandler();
     DynamicJsonDocument doc(2048);
     doc["version"] = ESPFloraVersion;
+    doc["macAddress"] = result.address;
+    doc["uptime"] = result.uptime;
     JsonObject internalRam = doc.createNestedObject("internalRam");
     internalRam["heapSize"] = result.heapSize;
     internalRam["freeSize"] = result.freeHeap;
@@ -120,7 +122,7 @@ void WebServerManager::scan()
         JsonObject jsonSensor = Sensors.createNestedObject();
 
         jsonSensor["name"] = result[i].name;
-        jsonSensor["address"] = result[i].address;
+        jsonSensor["macAddress"] = result[i].address;
         jsonSensor["rssi"] = result[i].rssi;
     }
     String output;
@@ -140,9 +142,9 @@ void WebServerManager::getSensorVersionAndBattery()
         case Success:
         {
             DynamicJsonDocument doc(512);
-            /* code */
             doc["battery"] = result.battery;
             doc["version"] = result.version;
+            doc["rssi"] = result.rssi;
             String output;
             serializeJson(doc, output);
             webServer.send(200, "application/json", output);
@@ -165,11 +167,11 @@ void WebServerManager::getSensorValues()
         case Success:
         {
             DynamicJsonDocument doc(512);
-            /* code */
             doc["temperature"] = result.temperature;
             doc["brightness"] = result.brightness;
             doc["moisture"] = result.moisture;
             doc["conductivity"] = result.conductivity;
+            doc["rssi"] = result.rssi;
             String output;
             serializeJson(doc, output);
             webServer.send(200, "application/json", output);

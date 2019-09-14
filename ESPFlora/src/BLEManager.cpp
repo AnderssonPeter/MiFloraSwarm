@@ -54,8 +54,8 @@ std::vector<Sensor> BLEManager::scan()
 SensorVersionAndBattery BLEManager::getSensorVersionAndBattery(String address)
 {
     log("getSensorVersionAndBattery");
-    log("Connecting to " + address);
     BLEClient* client = BLEDevice::createClient();
+    log("Connecting to " + address);
     BLEAddress bleAddress = BLEAddress(address.c_str());
     bool connected = client->connect(bleAddress);
     SensorVersionAndBattery result;
@@ -83,9 +83,11 @@ SensorVersionAndBattery BLEManager::getSensorVersionAndBattery(String address)
                 
                 auto value = characteristic->readValue();
                 log("Parsing value");
+                //todo: get rssi
                 result.battery = (int)value[0];
                 result.version = value.substr(2).c_str();
-                result.status = Success; 
+                result.status = Success;
+                
                 log("Value parsed");
             }  
         }     
@@ -93,17 +95,17 @@ SensorVersionAndBattery BLEManager::getSensorVersionAndBattery(String address)
     else {
         result.status = NotFound;
     }
-    log("Disconnecting");
+    /*log("Disconnecting");
     client->disconnect();
-    log("Disconnected");
+    log("Disconnected");*/
     return result;
 };
 
 SensorValues BLEManager::getSensorValues(String address)
 {
     log("getSensorValues");
-    log("Connecting to " + address);
     BLEClient* client = BLEDevice::createClient();
+    log("Connecting to " + address);
     BLEAddress bleAddress = BLEAddress(address.c_str());
     bool connected = client->connect(bleAddress);
     SensorValues result;
@@ -137,6 +139,8 @@ SensorValues BLEManager::getSensorValues(String address)
                     Serial.print((int)values[i], HEX);
                     Serial.print(" ");
                 }
+                
+                //todo: get rssi
                 Serial.print("");
                 result.status = Success;
                 result.temperature = (values[0] + values[1] * 256) / ((float)10.0);
@@ -150,8 +154,8 @@ SensorValues BLEManager::getSensorValues(String address)
     {
         result.status = NotFound;
     }
-    log("Disconnecting");
+    /*log("Disconnecting");
     client->disconnect();
-    log("Disconnected");
+    log("Disconnected");*/
     return result;
 };

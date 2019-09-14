@@ -17,6 +17,7 @@ typedef struct {
     Status status;
     String version;
     int battery;
+    int rssi;
 } SensorVersionAndBattery;
 
 typedef struct {
@@ -25,9 +26,12 @@ typedef struct {
     int brightness;
     float temperature;
     int conductivity;
+    int rssi;
 } SensorValues;
 
 typedef struct {
+    String uptime;
+    String address;
 
     //Internal RAM
     uint32_t heapSize; //total heap size

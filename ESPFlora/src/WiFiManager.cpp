@@ -18,19 +18,23 @@ void WiFiManager::connect()
     log("Initializing WiFi");  
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, passphrase);
-    Serial.print("Connecting to "); log(ssid);
+    Serial.print("Connecting to " + String(ssid));
     while (!isConnected()) {
         delay(200);
         Serial.print('.');
     }
     
     Serial.println("");
-    Serial.print("Connected. IP address is: ");
-    log(WiFi.localIP());
+    log("Connected. IP address is: " + WiFi.localIP().toString() + ", Mac address: " + WiFi.macAddress());
 
     if (MDNS.begin("esp32")) {
         log("MDNS responder started");
     }
+}
+
+String WiFiManager::getMACAddress()
+{
+    return WiFi.macAddress();
 }
 
 bool WiFiManager::isConnected()
