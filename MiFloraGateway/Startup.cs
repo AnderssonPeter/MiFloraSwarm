@@ -23,6 +23,11 @@ using Hangfire.LiteDB;
 using ElmahCore;
 using System.IO;
 using System.Reflection;
+using Hangfire.Console;
+using MQTTnet.Client;
+using MQTTnet.Client.Options;
+using MQTTnet;
+using System.Threading;
 
 namespace MiFloraGateway
 {
@@ -47,10 +52,30 @@ namespace MiFloraGateway
             //Register all commands
             services.AddTransient<IDetectDeviceCommand, DetectDeviceCommand>();
             services.AddTransient<IDetectSensorCommand, DetectSensorCommand>();
+            services.AddTransient<IReadBatteryAndFirmwareCommand, ReadBatteryAndFirmwareCommand>();
+            services.AddTransient<IReadValuesCommand, ReadValuesCommand>();
+            services.AddSingleton<IRunOnStartup, ReadBatteryAndFirmwareStartup>();
+            services.AddSingleton<IRunOnStartup, ReadValuesSensorStartup>();
+            services.AddSingleton<ISettingsManager, SettingsManager>();
 
             services.AddSingleton<ILogProvider, ElmahCoreLogProvider>();
+            var mqttClientFactory = new MqttFactory();
+            services.AddTransient<Func<CancellationToken, Task<IMqttClient>>>((sp) => async (cancellationToken) =>
+            {
+                var settingsManager = sp.GetRequiredService<ISettingsManager>();
+                var builder = new MqttClientOptionsBuilder();
+
+                builder.WithClientId(settingsManager.Get)
+
+                var options = builder.Build();
+                //todo add a logger;
+                var client = mqttClientFactory.CreateMqttClient();
+                await client.ConnectAsync(options, cancellationToken);
+                return client;
+            });
             services.AddHangfire((serviceProvider, configuration) => configuration
                 .UseLogProvider(serviceProvider.GetRequiredService<ILogProvider>())
+                .UseConsole()
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
@@ -75,7 +100,7 @@ namespace MiFloraGateway
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IEnumerable<IRunOnStartup> runOnStartups)
         {
             if (env.IsDevelopment())
             {
@@ -108,6 +133,11 @@ namespace MiFloraGateway
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });*/
+
+            foreach(var runOnStartup in runOnStartups)
+            {
+                runOnStartup.Initialize();
+            }
         }
     }
 }

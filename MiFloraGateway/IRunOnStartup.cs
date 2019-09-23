@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MiFloraGateway.Sensors
+namespace MiFloraGateway
 {
-    public class ReadValuesSensorCommand
+    public interface IRunOnStartup
     {
+        void Initialize();
     }
 }

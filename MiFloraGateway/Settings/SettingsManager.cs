@@ -6,21 +6,6 @@ using System.Threading.Tasks;
 
 namespace MiFloraGateway
 {
-    public enum Settings
-    {
-        [DefaultValue("0 0 0 ? * *")]
-        UpdateBatteryCron,
-        [DefaultValue("0 0 * ? * *")]
-        UpdateValuesCron
-
-    }
-    public interface ISettingsManager
-    {
-        void Set(Settings setting, string value);
-        string Get(Settings setting);
-        IDisposable WatchForChanges(Action<Settings, string> callback, params Settings[] settings);
-    }
-
     public class SettingsManager : ISettingsManager
     {
         //todo: implement storage!
