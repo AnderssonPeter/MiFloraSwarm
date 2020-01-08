@@ -4,19 +4,24 @@ namespace MiFloraGateway
 {
     public enum Settings
     {
-        [DefaultValue("0 0 0 ? * *")]
+        [Setting(typeof(string) , "0 0 0 ? * *", true)]
         UpdateBatteryAndVersionCron,
-        [DefaultValue("0 0 * ? * *")]
+        [Setting(typeof(string), "0 0 * ? * *", true)]
         UpdateValuesCron,
-        [DefaultValue("MiFloraGateway")]
+        [Setting(typeof(string), "MiFloraGateway", true)]
         MQTTClientId,
-        [DefaultValue("")]
+        [Setting(typeof(string), "", true)]
         MQTTServerAddress,
-        [DefaultValue("")]
+        [Setting(typeof(string), "", true)]
         MQTTUsername,
-        [DefaultValue("")]
+        [Setting(typeof(string), "", false)]
         MQTTPassword,
-        [DefaultValue(false)]
-        MQTTUseTLS
+        [Setting(typeof(bool), false, true)]
+        MQTTUseTLS,
+        [Setting(typeof(string), "admin", true)]
+        Username,
+        [Setting(typeof(string), "", false)]
+        Password
+
     }
 }

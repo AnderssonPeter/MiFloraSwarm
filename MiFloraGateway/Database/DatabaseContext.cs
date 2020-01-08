@@ -27,6 +27,7 @@ namespace MiFloraGateway.Database
         public DbSet<PlantBasic> PlantBasics { get; set; }
         public DbSet<PlantMaintenance> PlantMaintenance { get; set; }
         public DbSet<PlantParameters> PlantParameters { get; set; }
+        public DbSet<Setting> Settings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -103,6 +104,8 @@ namespace MiFloraGateway.Database
 
             builder.Entity<PlantMaintenance>().HasKey(m => m.PlantId);
 
+            builder.Entity<Setting>().HasKey(s => s.Key);
+
             base.OnModelCreating(builder);
         }
 
@@ -111,6 +114,13 @@ namespace MiFloraGateway.Database
             return new LogEntryHandler(this, @event, device, sensor);
         }
 
+    }
+
+    public class Setting
+    {
+        public Settings Key { get; set; }
+        public string Value { get; set; }
+        public DateTime? LastChanged { get; set; }
     }
 
     public class LogEntryHandler : IDisposable

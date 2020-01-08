@@ -1,5 +1,4 @@
-﻿using Hangfire;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiFloraGateway.Database;
 using MiFloraGateway.Devices;
@@ -17,30 +16,27 @@ namespace MiFloraGateway.Sensors
     public class DetectSensorCommand : IDetectSensorCommand
     {
         private readonly ILogger<DetectSensorCommand> logger;
-        private readonly IBackgroundJobClient backgroundJobClient;
         private readonly IDeviceLockManager deviceLockManager;
         private readonly DatabaseContext databaseContext;
         private readonly IDeviceService deviceService;
-        private int retryCount;
-        private int delayAfterFailure;
-        public DetectSensorCommand(ILogger<DetectSensorCommand> logger, IDeviceService deviceService, IBackgroundJobClient backgroundJobClient, IDeviceLockManager deviceLockManager, DatabaseContext databaseContext)
+        private readonly CancellationToken cancellationToken;
+
+        public DetectSensorCommand(ILogger<DetectSensorCommand> logger, IDeviceService deviceService, 
+                                   IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
+                                   ICancellationTokenAccessor cancellationTokenAccessor)
         {
             this.logger = logger;
-            this.backgroundJobClient = backgroundJobClient;
             this.deviceLockManager = deviceLockManager;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
+            this.cancellationToken = cancellationTokenAccessor.Get();
         }
 
-        public Task<IEnumerable<int>> ScanAsync(int retryCount = 3, int delayAfterFailure = 5, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<int>> CommandAsync()
         {
-            this.retryCount = retryCount;
-            this.delayAfterFailure = delayAfterFailure;
-            return backgroundJobClient.RunTaskAsync(CommandAsync, cancellationToken);
-        }
-
-        private async Task<IEnumerable<int>> CommandAsync(CancellationToken cancellationToken)
-        {
+            int retryCount = 3;
+            int delayAfterFailure = 5;
+            logger.LogTrace("CommandAsync({retryCount}, {delayAfterFailure})", retryCount, delayAfterFailure);
             var token = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, new CancellationTokenSource(3000).Token).Token;
 
             var devices = await databaseContext.Devices.ToArrayAsync();
@@ -53,6 +49,7 @@ namespace MiFloraGateway.Sensors
                         var result = await policy.ExecuteAndCaptureAsync(() => deviceService.ScanAsync(device.IPAddress, token));
                         if (result.Outcome == OutcomeType.Successful)
                         {
+                            logger.LogInformation("Scan using {device} was successful, found {number} sensors", device, result.Result.Count());
                             foreach (var sensorInfo in result.Result)
                             {
                                 var sensor = databaseContext.ChangeTracker.Entries<Sensor>().SingleOrDefault(x => x.Entity.MACAddress == sensorInfo.MACAddress)?.Entity;
@@ -67,13 +64,14 @@ namespace MiFloraGateway.Sensors
                                         MACAddress = sensorInfo.MACAddress,
                                         Name = sensorInfo.Name,
                                         Tags = new Collection<SensorTag> {
-                                        new SensorTag { Tag = PredefinedTags.Added, Value = DateTime.Now.ToString("g") },
-                                        new SensorTag { Tag = PredefinedTags.Source, Value = "Scan" }
-                                    }
+                                            new SensorTag { Tag = PredefinedTags.Added, Value = DateTime.Now.ToString("g") },
+                                            new SensorTag { Tag = PredefinedTags.Source, Value = "Scan" }
+                                        }
                                     };
+                                    logger.LogInformation("Added sensor with {MACAddress}", sensorInfo.MACAddress);
                                     databaseContext.Sensors.Add(sensor);
                                 }
-                                await databaseContext.DeviceSensorDistances.AddAsync(new DeviceSensorDistance
+                                databaseContext.DeviceSensorDistances.Add(new DeviceSensorDistance
                                 {
                                     Device = device,
                                     Sensor = sensor,
@@ -92,6 +90,7 @@ namespace MiFloraGateway.Sensors
                 });
                 await Task.WhenAll(scanTasks);
                 var addedSensors = databaseContext.ChangeTracker.Entries<Sensor>().Where(x => x.State == EntityState.Added).Select(x => x.Entity);
+                logger.LogInformation("Saving changes");
                 await databaseContext.SaveChangesAsync();
                 return addedSensors.Select(x => x.Id);
             }

@@ -1,4 +1,5 @@
-﻿using MiFloraGateway.Database;
+﻿using Microsoft.Extensions.Logging;
+using MiFloraGateway.Database;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -10,11 +11,20 @@ namespace MiFloraGateway.Devices
 {
     public class DeviceLockManager : IDeviceLockManager
     {
+        private readonly ILogger<DeviceLockManager> logger;
         AsyncLock innerLock = new AsyncLock();
 
-        public Task<IDisposable> LockAsync(CancellationToken token = default)
+        public DeviceLockManager(ILogger<DeviceLockManager> logger)
         {
-            return innerLock.LockAsync(token);
+            this.logger = logger;
+        }
+
+        public async Task<IDisposable> LockAsync(CancellationToken token = default)
+        {
+            logger.LogTrace("Acquiring lock");
+            var locker = await innerLock.LockAsync(token);
+            logger.LogTrace("Lock acquired");
+            return locker;
         }
     }
 }

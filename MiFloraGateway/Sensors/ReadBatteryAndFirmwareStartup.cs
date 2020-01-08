@@ -17,13 +17,14 @@ namespace MiFloraGateway.Sensors
         public void Initialize()
         {
 
-            UpdateSchedule(settingsManager.Get(Settings.UpdateBatteryAndVersionCron));
-            settingsManager.WatchForChanges((_, cronExpression) => UpdateSchedule(cronExpression), Settings.UpdateBatteryAndVersionCron);
+            UpdateSchedule();
+            settingsManager.WatchForChanges(_ => UpdateSchedule(), Settings.UpdateBatteryAndVersionCron);
         }
 
-        private void UpdateSchedule(string cronExpression)
+        private void UpdateSchedule()
         {
-            recurringJobManager.AddOrUpdate<IReadBatteryAndFirmwareCommand>("ReadBatteryAndFirmwareVersion", c => c.CommandAsync(null), cronExpression);
+            var cronExpression = settingsManager.Get<string>(Settings.UpdateBatteryAndVersionCron);
+            recurringJobManager.AddOrUpdate<IReadBatteryAndFirmwareCommand>("ReadBatteryAndFirmwareVersion", c => c.CommandAsync(), cronExpression);
         }
     }
 }

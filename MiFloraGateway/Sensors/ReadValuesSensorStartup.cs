@@ -1,5 +1,4 @@
 ﻿using Hangfire;
-using MiFloraGateway.Settings;
 
 namespace MiFloraGateway.Sensors
 {
@@ -16,14 +15,14 @@ namespace MiFloraGateway.Sensors
 
         public void Initialize()
         {
-
-            UpdateSchedule(settingsManager.Get(Settings.UpdateValuesCron));
-            settingsManager.WatchForChanges((_, cronExpression) => UpdateSchedule(cronExpression), Settings.UpdateValuesCron);
+            UpdateSchedule();
+            settingsManager.WatchForChanges(_ => UpdateSchedule());
         }
 
-        private void UpdateSchedule(string cronExpression)
+        private void UpdateSchedule()
         {
-            recurringJobManager.AddOrUpdate<IReadValuesCommand>("ReadValues", c => c.CommandAsync(null), cronExpression);
+            var cronExpression = settingsManager.Get<string>(Settings.UpdateValuesCron);
+            recurringJobManager.AddOrUpdate<IReadValuesCommand>("ReadValues", c => c.CommandAsync(), cronExpression);
         }
     }
 }

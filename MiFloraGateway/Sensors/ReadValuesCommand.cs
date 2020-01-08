@@ -7,6 +7,7 @@ using MiFloraGateway.Devices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MiFloraGateway.Sensors
@@ -17,22 +18,24 @@ namespace MiFloraGateway.Sensors
         private readonly IDeviceLockManager deviceLockManager;
         private readonly DatabaseContext databaseContext;
         private readonly IDeviceService deviceService;
-        private readonly IBackgroundJobClient backgroundJobClient;
+        private readonly IJobManager jobManager;
+        private readonly CancellationToken cancellationToken;
 
         public ReadValuesCommand(ILogger<ReadBatteryAndFirmwareCommand> logger,
             IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
-            IDeviceService deviceService, IBackgroundJobClient backgroundJobClient)
+            IDeviceService deviceService, IJobManager jobManager,
+            ICancellationTokenAccessor cancellationTokenAccessor)
         {
             this.logger = logger;
             this.deviceLockManager = deviceLockManager;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
-            this.backgroundJobClient = backgroundJobClient;
+            this.jobManager = jobManager;
+            this.cancellationToken = cancellationTokenAccessor.Get();
         }
-        public async Task CommandAsync(PerformContext context)
+
+        public async Task CommandAsync()
         {
-            var logger = new HangfireConsoleLogger(context, this.logger);
-            var cancellationToken = context.CancellationToken.ShutdownToken;
             logger.LogTrace("CommandAsync");
             using (await deviceLockManager.LockAsync(cancellationToken))
             {
@@ -52,11 +55,12 @@ namespace MiFloraGateway.Sensors
                             var result = await deviceService.GetValuesAsync(device.IPAddress, sensor.MACAddress, cancellationToken);
                             databaseContext.DeviceSensorDistances.Add(new DeviceSensorDistance { Device = device, Sensor = sensor, When = DateTime.Now, Rssi = result.Rssi });
                             databaseContext.SensorDataReadings.Add(new SensorDataReading{ Sensor = sensor, When = DateTime.Now, Brightness = result.Brightness, Conductivity = result.Conductivity, Moisture = result.Moisture, Temperature = result.Temperature });
+                            logger.LogTrace("Saving changes");
                             await databaseContext.SaveChangesAsync(cancellationToken);
                             logger.LogInformation("Saved new sensor values");
 
                             logger.LogInformation("Triggering a send of the new values!");
-                            backgroundJobClient.ContinueJobWith<ISendValuesCommand>(context.BackgroundJob.Id, x => x.CommandAsync(null, sensor.Id));
+                            jobManager.Start<ISendValuesCommand>(command => command.CommandAsync(sensor.Id));
                             break; //We managed to scan the sensor successfully no need to try any other devices!
                         }
                         catch (Exception ex)

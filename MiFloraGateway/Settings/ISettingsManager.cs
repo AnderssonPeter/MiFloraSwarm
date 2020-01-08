@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MiFloraGateway
 {
     public interface ISettingsManager
     {
-        void Set(Settings setting, string value);
-        string Get(Settings setting);
-        IDisposable WatchForChanges(Action<Settings, string> callback, params Settings[] settings);
+        Task SetAsync<T>(Settings setting, T value, CancellationToken cancellationToken = default);
+        T Get<T>(Settings setting);
+        IDisposable WatchForChanges(Action<Settings> callback, params Settings[] settings);
     }
 }

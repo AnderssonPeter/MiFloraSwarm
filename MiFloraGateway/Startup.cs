@@ -43,6 +43,7 @@ namespace MiFloraGateway
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(x => x.AddHangfireConsole());
             services.AddOData();
             var logPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "log");
             services.AddElmah<XmlFileErrorLog>(options => options.LogPath = logPath);
@@ -50,6 +51,7 @@ namespace MiFloraGateway
             services.AddHttpContextAccessor();
 
             //Register all commands
+            services.AddTransient<TestCommand>();
             services.AddTransient<IDetectDeviceCommand, DetectDeviceCommand>();
             services.AddTransient<IDetectSensorCommand, DetectSensorCommand>();
             services.AddTransient<IReadBatteryAndFirmwareCommand, ReadBatteryAndFirmwareCommand>();
@@ -57,29 +59,15 @@ namespace MiFloraGateway
             services.AddSingleton<IRunOnStartup, ReadBatteryAndFirmwareStartup>();
             services.AddSingleton<IRunOnStartup, ReadValuesSensorStartup>();
             services.AddSingleton<ISettingsManager, SettingsManager>();
+            services.AddSingleton<IJobManager, JobManager>();
 
-            services.AddSingleton<ILogProvider, ElmahCoreLogProvider>();
-            var mqttClientFactory = new MqttFactory();
-            services.AddTransient<Func<CancellationToken, Task<IMqttClient>>>((sp) => async (cancellationToken) =>
-            {
-                var settingsManager = sp.GetRequiredService<ISettingsManager>();
-                var builder = new MqttClientOptionsBuilder();
-
-                builder.WithClientId(settingsManager.Get)
-
-                var options = builder.Build();
-                //todo add a logger;
-                var client = mqttClientFactory.CreateMqttClient();
-                await client.ConnectAsync(options, cancellationToken);
-                return client;
-            });
             services.AddHangfire((serviceProvider, configuration) => configuration
-                .UseLogProvider(serviceProvider.GetRequiredService<ILogProvider>())
                 .UseConsole()
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseLiteDbStorage("HangFire.db", new LiteDbStorageOptions { }));
+                .UseSqlServerStorage(@"Server=(localdb)\MSSQLLocalDB;Integrated Security=true;"));
+                //.UseLiteDbStorage("HangFire.db", new LiteDbStorageOptions { }));
 
             services.AddHangfireServer();
 
@@ -100,7 +88,7 @@ namespace MiFloraGateway
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IEnumerable<IRunOnStartup> runOnStartups)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IEnumerable<IRunOnStartup> runOnStartups, IRecurringJobManager recurringJobManager)
         {
             if (env.IsDevelopment())
             {
@@ -134,7 +122,9 @@ namespace MiFloraGateway
                 }
             });*/
 
-            foreach(var runOnStartup in runOnStartups)
+            recurringJobManager.AddOrUpdate<TestCommand>("Test", x => x.Run(null), "0 0 0 ? * *");
+
+            foreach (var runOnStartup in runOnStartups)
             {
                 runOnStartup.Initialize();
             }

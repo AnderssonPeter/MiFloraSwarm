@@ -5,6 +5,6 @@ namespace MiFloraGateway.Sensors
 {
     public interface IReadBatteryAndFirmwareCommand
     {
-        Task CommandAsync(PerformContext context);
+        Task CommandAsync();
     }
 }

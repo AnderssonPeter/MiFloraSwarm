@@ -5,6 +5,6 @@ namespace MiFloraGateway.Sensors
 {
     public interface IReadValuesCommand
     {
-        Task CommandAsync(PerformContext context);
+        Task CommandAsync();
     }
 }

@@ -18,33 +18,28 @@ namespace MiFloraGateway.Devices
     public class DetectDeviceCommand : IDetectDeviceCommand
     {
         private readonly ILogger<DetectDeviceCommand> logger;
-        private readonly IBackgroundJobClient backgroundJobClient;
         private readonly DatabaseContext databaseContext;
         private readonly IDeviceService deviceService;
         private readonly IDeviceLockManager deviceLockManager;
 
-        public DetectDeviceCommand(ILogger<DetectDeviceCommand> logger, IBackgroundJobClient backgroundJobClient, IDeviceLockManager deviceLockManager, DatabaseContext databaseContext, IDeviceService deviceService)
+        public DetectDeviceCommand(ILogger<DetectDeviceCommand> logger, IDeviceLockManager deviceLockManager, DatabaseContext databaseContext, IDeviceService deviceService)
         {
             this.logger = logger;
-            this.backgroundJobClient = backgroundJobClient;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
             this.deviceLockManager = deviceLockManager;
         }
 
-        public Task<IEnumerable<int>> ScanAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<int>> ScanAsync(CancellationToken cancellationToken)
         {
-            return backgroundJobClient.RunTaskAsync(CommandAsync, cancellationToken);
-        }
-
-        private async Task<IEnumerable<int>> CommandAsync(CancellationToken cancellationToken)
-        {
+            logger.LogTrace("ScanAsync");
             var token = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, new CancellationTokenSource(3000).Token).Token;
             var ids = new List<Device>();
             const int port = 16555;
             logger.LogDebug("Starting UDPClient");
             using (var client = new UdpClient())
             using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan))
+            using (cancellationToken.Register(() => client.Close()))
             {
                 try
                 {
@@ -68,7 +63,7 @@ namespace MiFloraGateway.Devices
                                 throw new Exception("Listen task caused a exception", completedTask.Exception);
                             }
                             var content = Encoding.UTF8.GetString(listeningTask.Result.Buffer);
-                            logger.LogInformation($"Recivied \"{content}\" from {listeningTask.Result.RemoteEndPoint}");
+                            logger.LogInformation($"Received \"{content}\" from {listeningTask.Result.RemoteEndPoint}");
                             if (content.StartsWith("MiFlora-Client"))
                             {
                                 tasks.Add(handleClientAsync(listeningTask.Result.RemoteEndPoint.Address.ToString(), token));
@@ -99,10 +94,11 @@ namespace MiFloraGateway.Devices
                 }
                 catch(Exception ex)
                 {
+                    logger.LogError(ex, "Failed to secan for new devices");
                     logEntry.Failure(ex.ToString());
                 }
             }
-
+            logger.LogInformation("Saving changes");
             await databaseContext.SaveChangesAsync(cancellationToken);
             return ids.Select(x => x.Id);
         }
@@ -115,6 +111,7 @@ namespace MiFloraGateway.Devices
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
+                    logger.LogInformation("Sending broadcast message to find devices.");
                     await client.SendAsync(buffer, buffer.Length, new IPEndPoint(IPAddress.Broadcast, port));
                     await Task.Delay(300, cancellationToken);
                 }
@@ -126,6 +123,7 @@ namespace MiFloraGateway.Devices
             logger.LogTrace("HandleClientAsync");
             try
             {
+                logger.LogInformation($"Adding device {clientAddress}");
                 using (await deviceLockManager.LockAsync(cancellationToken))
                 {
                     var result = await deviceService.GetDeviceInfoAsync(clientAddress, cancellationToken);
@@ -143,13 +141,14 @@ namespace MiFloraGateway.Devices
                             }
                         };
                         databaseContext.Add(device);
-                        logger.LogInformation("Added device");
+                        logger.LogInformation("Added new device with {MACAddress}", result.MACAddress);
                     }
                     else if (device.IPAddress != clientAddress)
                     {
                         device.IPAddress = clientAddress;
                         databaseContext.DevicesTags.Add(new DeviceTag { Device = device, Tag = PredefinedTags.IPAddressUpdated, Value = DateTime.Now.ToString("g") });
-                        logger.LogInformation("Device updated");
+
+                        logger.LogInformation("Updated device with {MACAddress}", result.MACAddress);
                     }
                     return device;
                 }

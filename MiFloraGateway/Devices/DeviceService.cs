@@ -7,6 +7,7 @@ using System.Net.Http.Formatting;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace MiFloraGateway.Devices
@@ -14,16 +15,20 @@ namespace MiFloraGateway.Devices
     public class DeviceService : IDeviceService
     {
         private readonly HttpClient httpClient;
+        private readonly ILogger<DeviceService> logger;
 
-        public DeviceService(HttpClient httpClient)
+        public DeviceService(HttpClient httpClient, ILogger<DeviceService> logger)
         {
             this.httpClient = httpClient;
+            this.logger = logger;
         }
 
         private async Task<T> GetAsync<T>(string url, CancellationToken cancellationToken = default)
         {
+            logger.LogTrace("GetAsync({url})", url);
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, new CancellationTokenSource(12 * 1000).Token);
             var result = await httpClient.GetAsync(url, tokenSource.Token);
+            logger.LogDebug("Http request to {url} completed with {StatusCode}", url, result.StatusCode);
             result.EnsureSuccessStatusCode();
             return await result.Content.ReadAsAsync<T>(tokenSource.Token);
         }

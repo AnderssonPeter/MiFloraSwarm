@@ -20,14 +20,14 @@ namespace MiFloraGateway.Controllers
     public class DevicesController : ODataController
     {
         private readonly DatabaseContext databaseContext;
-        private readonly IDetectDeviceCommand detectDeviceCommand;
         private readonly ILogger<DevicesController> logger;
+        private readonly IJobManager jobManager;
 
-        public DevicesController(DatabaseContext databaseContext, IDetectDeviceCommand detectDeviceCommand, ILogger<DevicesController> logger)
+        public DevicesController(DatabaseContext databaseContext, ILogger<DevicesController> logger, IJobManager jobManager)
         {
             this.databaseContext = databaseContext;
-            this.detectDeviceCommand = detectDeviceCommand;
             this.logger = logger;
+            this.jobManager = jobManager;
         }
 
         [EnableQuery]
@@ -124,7 +124,7 @@ namespace MiFloraGateway.Controllers
         public async Task<IQueryable<Device>> Scan()
         {
             logger.LogTrace("ScanAsync");
-            var ids = await detectDeviceCommand.ScanAsync(HttpContext.RequestAborted);            
+            var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectDeviceCommand>(ddc => ddc.ScanAsync(HttpContext.RequestAborted), HttpContext.RequestAborted).ConfigureAwait(false);
             return databaseContext.Devices.Where(x => ids.Contains(x.Id));
         }
 

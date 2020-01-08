@@ -21,13 +21,13 @@ namespace MiFloraGateway.Controllers
     public class SensorsController : ODataController
     {
         private readonly DatabaseContext databaseContext;
-        private readonly IDetectSensorCommand detectSensorCommand;
+        private readonly IJobManager jobManager;
         private readonly ILogger<SensorsController> logger;
 
-        public SensorsController(DatabaseContext databaseContext, IDetectSensorCommand detectSensorCommand, ILogger<SensorsController> logger)
+        public SensorsController(DatabaseContext databaseContext, IJobManager jobManager, ILogger<SensorsController> logger)
         {
             this.databaseContext = databaseContext;
-            this.detectSensorCommand = detectSensorCommand;
+            this.jobManager = jobManager;
             this.logger = logger;
         }
 
@@ -117,9 +117,9 @@ namespace MiFloraGateway.Controllers
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
-        public async Task<IQueryable<Sensor>> ScanAsync(int retryCount = 3, int delayAfterFailure = 5)
+        public async Task<IQueryable<Sensor>> ScanAsync()
         {
-            var ids = await detectSensorCommand.ScanAsync(retryCount, delayAfterFailure, HttpContext.RequestAborted);
+            var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectSensorCommand>(dsc => dsc.CommandAsync(), HttpContext.RequestAborted).ConfigureAwait(false);            
             return databaseContext.Sensors.Where(x => ids.Contains(x.Id));
         }
 

@@ -1,53 +1,93 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using MiFloraGateway.Database;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MiFloraGateway
 {
-    public class SettingsManager : ISettingsManager
+    public class SettingsManager : ISettingsManager, IRunOnStartup, IDisposable
     {
-        //todo: implement storage!
-        object locker = new object();
-        Dictionary<Settings, string> storage = new Dictionary<Settings, string>();
-        Dictionary<Settings, List<Action<Settings, string>>> callbackBag = new Dictionary<Settings, List<Action<Settings, string>>>();
+        AsyncLock locker = new AsyncLock();
+        Dictionary<Settings, object> storage = new Dictionary<Settings, object>();
+        Dictionary<Settings, List<Action<Settings>>> callbackBag = new Dictionary<Settings, List<Action<Settings>>>();
+        private readonly DatabaseContext databaseContext;
+        private readonly Dictionary<Type, ITypeConverter> typeConverters = new Dictionary<Type, ITypeConverter>();
+        private readonly IServiceScope scope;
 
-        public SettingsManager()
+        public SettingsManager(IServiceScopeFactory serviceScopeFactory, IEnumerable<ITypeConverter> typeConverters)
         {
-            foreach(var setting in Enum<Settings>.GetValues())
+            scope = serviceScopeFactory.CreateScope();
+            databaseContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+            foreach (ITypeConverter typeConverter in typeConverters)
             {
-                callbackBag[setting] = new List<Action<Settings, string>>();
+                this.typeConverters.Add(typeConverter.Type, typeConverter);
+            }
+            foreach (var setting in Enum<Settings>.GetValues())
+            {
+                callbackBag[setting] = new List<Action<Settings>>();
             }
         }
 
-        public string Get(Settings setting)
+        private Type GetTypeForSetting(Settings setting)
         {
-            lock (locker)
+            return Enum<Settings>.GetAttribute<SettingAttribute>(setting).Type;
+        }
+
+        public T Get<T>(Settings setting)
+        {
+            if (typeof(T) != GetTypeForSetting(setting))
+            {
+                throw new ArgumentOutOfRangeException(nameof(T), "Wrong type for that setting!");
+            }
+            using (locker.Lock())
             {
                 if (storage.TryGetValue(setting, out var value))
                 {
-                    return value;
+                    return (T)value;
                 }
             }
-            return (string)Enum<Settings>.GetAttribute<DefaultValueAttribute>(setting).Value;
+
+            return (T)Enum<Settings>.GetAttribute<SettingAttribute>(setting).DefaultValue;
         }
 
-        public void Set(Settings setting, string value)
+        public async Task SetAsync<T>(Settings setting, T value, CancellationToken cancellationToken = default)
         {
-            lock(locker)
+            var type = GetTypeForSetting(setting);
+            if (typeof(T) != type)
             {
+                throw new ArgumentOutOfRangeException(nameof(T), "Wrong type for that setting!");
+            }
+            using (await locker.LockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var stringValue = this.typeConverters[type].ConvertToString(value);
+                var entity = new Setting { Key = setting, Value = stringValue, LastChanged = DateTime.Now };
+                if (storage.ContainsKey(setting))
+                {
+                    this.databaseContext.Settings.Update(entity);
+                }
+                else
+                {
+                    this.databaseContext.Settings.Add(entity);
+                }
+                await this.databaseContext.SaveChangesAsync(cancellationToken);
+
                 storage[setting] = value;
                 if (callbackBag.TryGetValue(setting, out var callbacks))
                 {
-                    callbacks.ForEach(c => c(setting,value));
+                    callbacks.ForEach(c => c(setting));
                 }
             }
         }
 
-        public IDisposable WatchForChanges(Action<Settings, string> callback, params Settings[] settings)
+        public IDisposable WatchForChanges(Action<Settings> callback, params Settings[] settings)
         {
-            lock (locker)
+            using (locker.Lock())
             {
                 foreach (var setting in settings)
                 {
@@ -57,13 +97,27 @@ namespace MiFloraGateway
             return new Watcher(this, callback, settings);
         }
 
-        class Watcher : IDisposable
+        public void Initialize()
+        {
+            foreach(var setting in databaseContext.Settings)
+            {
+                var converter = this.typeConverters[GetTypeForSetting(setting.Key)];
+                storage.Add(setting.Key, converter.ConvertFromString(setting.Value));
+            }
+        }
+
+        public void Dispose()
+        {
+            scope.Dispose();
+        }
+
+        private class Watcher : IDisposable
         {
             private readonly SettingsManager settingsManager;
-            private readonly Action<Settings, string> callback;
+            private readonly Action<Settings> callback;
             private readonly Settings[] settings;
 
-            public Watcher(SettingsManager settingsManager, Action<Settings, string> callback, Settings[] settings)
+            public Watcher(SettingsManager settingsManager, Action<Settings> callback, Settings[] settings)
             {
                 this.settingsManager = settingsManager;
                 this.callback = callback;
@@ -72,7 +126,7 @@ namespace MiFloraGateway
 
             public void Dispose()
             {
-                lock(settingsManager.locker)
+                using (settingsManager.locker.Lock())
                 {
                     foreach(var settings in settings)
                     {
