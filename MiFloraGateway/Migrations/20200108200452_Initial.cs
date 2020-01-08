@@ -53,7 +53,7 @@ namespace MiFloraGateway.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    MACAddress = table.Column<string>(fixedLength: true, maxLength: 18, nullable: false),
+                    MACAddress = table.Column<string>(fixedLength: true, maxLength: 17, nullable: false),
                     IPAddress = table.Column<string>(maxLength: 45, nullable: false),
                     Name = table.Column<string>(nullable: true)
                 },
@@ -76,6 +76,19 @@ namespace MiFloraGateway.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Plants", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Settings",
+                columns: table => new
+                {
+                    Key = table.Column<int>(nullable: false),
+                    Value = table.Column<string>(nullable: true),
+                    LastChanged = table.Column<DateTime>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Settings", x => x.Key);
                 });
 
             migrationBuilder.CreateTable(
@@ -284,9 +297,8 @@ namespace MiFloraGateway.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    MACAddress = table.Column<string>(fixedLength: true, maxLength: 18, nullable: false),
+                    MACAddress = table.Column<string>(fixedLength: true, maxLength: 17, nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    Version = table.Column<string>(maxLength: 12, nullable: false),
                     PlantId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
@@ -304,13 +316,14 @@ namespace MiFloraGateway.Migrations
                 name: "DeviceSensorDistances",
                 columns: table => new
                 {
+                    When = table.Column<DateTime>(nullable: false),
                     DeviceId = table.Column<int>(nullable: false),
                     SensorId = table.Column<int>(nullable: false),
                     Rssi = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DeviceSensorDistances", x => new { x.DeviceId, x.SensorId });
+                    table.PrimaryKey("PK_DeviceSensorDistances", x => new { x.DeviceId, x.SensorId, x.When });
                     table.ForeignKey(
                         name: "FK_DeviceSensorDistances_Devices_DeviceId",
                         column: x => x.DeviceId,
@@ -326,12 +339,44 @@ namespace MiFloraGateway.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LogEntries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    DeviceId = table.Column<int>(nullable: true),
+                    SensorId = table.Column<int>(nullable: true),
+                    When = table.Column<DateTime>(nullable: false),
+                    Duration = table.Column<TimeSpan>(nullable: false),
+                    Event = table.Column<string>(maxLength: 21, nullable: false),
+                    Result = table.Column<string>(maxLength: 10, nullable: false),
+                    Message = table.Column<string>(maxLength: 200, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LogEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LogEntries_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_LogEntries_Sensors_SensorId",
+                        column: x => x.SensorId,
+                        principalTable: "Sensors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SensorBatteryReadings",
                 columns: table => new
                 {
                     SensorId = table.Column<int>(nullable: false),
                     When = table.Column<DateTime>(nullable: false),
-                    Battery = table.Column<int>(nullable: false)
+                    Battery = table.Column<int>(nullable: false),
+                    Version = table.Column<string>(maxLength: 12, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -436,6 +481,16 @@ namespace MiFloraGateway.Migrations
                 column: "SensorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LogEntries_DeviceId",
+                table: "LogEntries",
+                column: "DeviceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LogEntries_SensorId",
+                table: "LogEntries",
+                column: "SensorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Plants_LatinName",
                 table: "Plants",
                 column: "LatinName",
@@ -477,6 +532,9 @@ namespace MiFloraGateway.Migrations
                 name: "DevicesTags");
 
             migrationBuilder.DropTable(
+                name: "LogEntries");
+
+            migrationBuilder.DropTable(
                 name: "PlantBasics");
 
             migrationBuilder.DropTable(
@@ -493,6 +551,9 @@ namespace MiFloraGateway.Migrations
 
             migrationBuilder.DropTable(
                 name: "SensorTags");
+
+            migrationBuilder.DropTable(
+                name: "Settings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

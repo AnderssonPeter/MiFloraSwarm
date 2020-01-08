@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hangfire.Storage.Monitoring;
 using Hangfire.States;
+using Newtonsoft.Json;
 
 namespace MiFloraGateway
 {
@@ -34,7 +35,7 @@ namespace MiFloraGateway
             this.backgroundJobClient = backgroundJobClient;
         }
 
-        private readonly string[] runningStates = new[] { AwaitingState.StateName, EnqueuedState.StateName, AwaitingState.StateName};
+        private readonly string[] runningStates = new[] { AwaitingState.StateName, EnqueuedState.StateName, ProcessingState.StateName };
         
         public async Task<TResult> StartWaitAsync<TResult, TJob>([InstantHandle, NotNull] Expression<Func<TJob, Task>> methodCall, CancellationToken cancellationToken = default)
         {
@@ -84,6 +85,11 @@ namespace MiFloraGateway
                 var job = monitoringApi.SucceededJobs(start, count).SingleOrDefault(x => x.Key == jobId).Value;
                 if (job != null)
                 {
+                    var result = job.Result;
+                    if (result.GetType() == typeof(string))
+                    {
+                        return JsonConvert.DeserializeObject<TResult>((string)result);
+                    }
                     return (TResult)job.Result;
                 }
             }

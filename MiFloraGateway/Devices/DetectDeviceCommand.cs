@@ -30,7 +30,7 @@ namespace MiFloraGateway.Devices
             this.deviceLockManager = deviceLockManager;
         }
 
-        public async Task<IEnumerable<int>> ScanAsync(CancellationToken cancellationToken)
+        public async Task<int[]> ScanAsync(CancellationToken cancellationToken)
         {
             logger.LogTrace("ScanAsync");
             var token = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, new CancellationTokenSource(3000).Token).Token;
@@ -39,7 +39,10 @@ namespace MiFloraGateway.Devices
             logger.LogDebug("Starting UDPClient");
             using (var client = new UdpClient())
             using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan))
-            using (cancellationToken.Register(() => client.Close()))
+            using (token.Register(() => {
+                logger.LogWarning("Timeout occured closing udpClient");
+                client.Close();
+            }))
             {
                 try
                 {
@@ -100,7 +103,7 @@ namespace MiFloraGateway.Devices
             }
             logger.LogInformation("Saving changes");
             await databaseContext.SaveChangesAsync(cancellationToken);
-            return ids.Select(x => x.Id);
+            return ids.Select(x => x.Id).ToArray();
         }
 
         private async Task sendScanAsync(UdpClient client, int port, CancellationToken cancellationToken)

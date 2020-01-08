@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MiFloraGateway.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20190802133526_convertFields")]
-    partial class convertFields
+    [Migration("20200108200452_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -34,7 +34,7 @@ namespace MiFloraGateway.Migrations
                     b.Property<string>("MACAddress")
                         .IsRequired()
                         .IsFixedLength(true)
-                        .HasMaxLength(18);
+                        .HasMaxLength(17);
 
                     b.Property<string>("Name");
 
@@ -81,17 +81,17 @@ namespace MiFloraGateway.Migrations
 
             modelBuilder.Entity("MiFloraGateway.Database.LogEntry", b =>
                 {
-                    b.Property<int?>("DeviceId");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("When");
+                    b.Property<int?>("DeviceId");
 
                     b.Property<TimeSpan>("Duration");
 
                     b.Property<string>("Event")
                         .IsRequired()
                         .HasMaxLength(21);
-
-                    b.Property<int>("Id");
 
                     b.Property<string>("Message")
                         .HasMaxLength(200);
@@ -102,7 +102,11 @@ namespace MiFloraGateway.Migrations
 
                     b.Property<int?>("SensorId");
 
-                    b.HasKey("DeviceId", "When");
+                    b.Property<DateTime>("When");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId");
 
                     b.HasIndex("SensorId");
 
@@ -192,7 +196,7 @@ namespace MiFloraGateway.Migrations
                     b.Property<string>("MACAddress")
                         .IsRequired()
                         .IsFixedLength(true)
-                        .HasMaxLength(18);
+                        .HasMaxLength(17);
 
                     b.Property<string>("Name");
 
@@ -257,6 +261,19 @@ namespace MiFloraGateway.Migrations
                     b.HasKey("SensorId", "Tag");
 
                     b.ToTable("SensorTags");
+                });
+
+            modelBuilder.Entity("MiFloraGateway.Database.Setting", b =>
+                {
+                    b.Property<int>("Key");
+
+                    b.Property<DateTime?>("LastChanged");
+
+                    b.Property<string>("Value");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("Settings");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -445,8 +462,7 @@ namespace MiFloraGateway.Migrations
                 {
                     b.HasOne("MiFloraGateway.Database.Device", "Device")
                         .WithMany("Logs")
-                        .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("DeviceId");
 
                     b.HasOne("MiFloraGateway.Database.Sensor", "Sensor")
                         .WithMany("Logs")

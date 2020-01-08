@@ -56,7 +56,7 @@ namespace CoreFlora
                     if (content.StartsWith("MiFlora-Server-"))
                     {
                         var response = Encoding.UTF8.GetBytes("MiFlora-Client-Core-" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
-                        await client.SendAsync(response, response.Length, receiveResult.RemoteEndPoint);
+                        await client.SendAsync(response, response.Length, new IPEndPoint(IPAddress.Broadcast, port));
                         logger.LogInformation("Response sent");
                     }
                 }

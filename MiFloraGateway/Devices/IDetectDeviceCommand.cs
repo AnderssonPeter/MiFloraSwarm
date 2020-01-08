@@ -6,6 +6,6 @@ namespace MiFloraGateway.Devices
 {
     public interface IDetectDeviceCommand
     {
-        Task<IEnumerable<int>> ScanAsync(CancellationToken cancellationToken);
+        Task<int[]> ScanAsync(CancellationToken cancellationToken);
     }
 }

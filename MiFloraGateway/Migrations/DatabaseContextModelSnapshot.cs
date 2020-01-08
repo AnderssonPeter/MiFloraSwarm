@@ -79,17 +79,17 @@ namespace MiFloraGateway.Migrations
 
             modelBuilder.Entity("MiFloraGateway.Database.LogEntry", b =>
                 {
-                    b.Property<int?>("DeviceId");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("When");
+                    b.Property<int?>("DeviceId");
 
                     b.Property<TimeSpan>("Duration");
 
                     b.Property<string>("Event")
                         .IsRequired()
                         .HasMaxLength(21);
-
-                    b.Property<int>("Id");
 
                     b.Property<string>("Message")
                         .HasMaxLength(200);
@@ -100,7 +100,11 @@ namespace MiFloraGateway.Migrations
 
                     b.Property<int?>("SensorId");
 
-                    b.HasKey("DeviceId", "When");
+                    b.Property<DateTime>("When");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId");
 
                     b.HasIndex("SensorId");
 
@@ -456,8 +460,7 @@ namespace MiFloraGateway.Migrations
                 {
                     b.HasOne("MiFloraGateway.Database.Device", "Device")
                         .WithMany("Logs")
-                        .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("DeviceId");
 
                     b.HasOne("MiFloraGateway.Database.Sensor", "Sensor")
                         .WithMany("Logs")

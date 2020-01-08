@@ -43,8 +43,9 @@ namespace MiFloraGateway.Database
             builder.Entity<DeviceTag>().HasKey(dt => new { dt.DeviceId, dt.Tag });
             builder.Entity<DeviceTag>().Property(dt => dt.Tag).HasMaxLength(32);
             builder.Entity<DeviceTag>().Property(dt => dt.Value).IsRequired().HasMaxLength(32);
-            
-            builder.Entity<LogEntry>().HasKey(dl => new { dl.DeviceId, dl.When });
+
+            builder.Entity<LogEntry>().HasKey(dl => dl.Id);
+            builder.Entity<LogEntry>().Property(dl => dl.Id).ValueGeneratedOnAdd();
             builder.Entity<LogEntry>().Property(dl => dl.Event).HasMaxLength(Enum<LogEntryEvent>.GetValues().Max(x => x.ToString().Length))
                                                                 .IsRequired()
                                                                 .HasConversion(x => x.ToString(), x => Enum<LogEntryEvent>.Parse(x));
