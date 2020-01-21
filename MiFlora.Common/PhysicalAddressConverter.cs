@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace CoreFlora
+namespace MiFlora.Common
 {
     public class PhysicalAddressConverter : JsonConverter<PhysicalAddress>
     {
@@ -19,7 +19,13 @@ namespace CoreFlora
 
         public override void Write(Utf8JsonWriter writer, PhysicalAddress value, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(BitConverter.ToString(value.GetAddressBytes()).Replace('-', ':'));
+            writer.WriteStringValue(value.ToFormattedString());
         }
+    }
+
+    public static class PhysicalAddressExtensionMethods
+    {
+        public static string ToFormattedString(this PhysicalAddress value) =>
+            BitConverter.ToString(value.GetAddressBytes()).Replace('-', ':');
     }
 }

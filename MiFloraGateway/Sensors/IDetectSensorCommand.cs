@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Hangfire;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ namespace MiFloraGateway.Sensors
 {
     public interface IDetectSensorCommand
     {
-        Task<IEnumerable<int>> CommandAsync();
+        [AutomaticRetry(Attempts = 0), JobDisplayName("Scan for new sensors")]
+        Task<int[]> CommandAsync();
     }
 }

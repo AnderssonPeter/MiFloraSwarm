@@ -5,6 +5,23 @@ using System;
 
 namespace MiFloraGateway
 {
+    /// <summary>
+    /// An empty scope without any logic
+    /// </summary>
+    public class NullScope : IDisposable
+    {
+        public static NullScope Instance { get; } = new NullScope();
+
+        private NullScope()
+        {
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+        }
+    }
+
     class HangfireLogger : ILogger
     {
         private readonly IPerformingContextAccessor contextAccessor;
@@ -16,7 +33,7 @@ namespace MiFloraGateway
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return Microsoft.Extensions.Logging.Abstractions.Internal.NullScope.Instance;
+            return NullScope.Instance;
         }
 
         public bool IsEnabled(LogLevel logLevel)

@@ -52,7 +52,7 @@ namespace MiFloraGateway.Sensors
                         try
                         {
                             logger.LogInformation("Trying to get values for {sensor} using {device}", sensor, device);
-                            var result = await deviceService.GetValuesAsync(device.IPAddress, sensor.MACAddress, cancellationToken);
+                            var result = await deviceService.GetValuesAsync(device, sensor.MACAddress, cancellationToken);
                             databaseContext.DeviceSensorDistances.Add(new DeviceSensorDistance { Device = device, Sensor = sensor, When = DateTime.Now, Rssi = result.Rssi });
                             databaseContext.SensorDataReadings.Add(new SensorDataReading{ Sensor = sensor, When = DateTime.Now, Brightness = result.Brightness, Conductivity = result.Conductivity, Moisture = result.Moisture, Temperature = result.Temperature });
                             logger.LogTrace("Saving changes");

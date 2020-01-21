@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MiFlora.Common;
 
 namespace CoreFlora.Controllers
 {
@@ -16,14 +17,11 @@ namespace CoreFlora.Controllers
         Restart
     }
 
-    public class DeviceInformation
+    public class DeviceInformation : DeviceInfo
     {
-        public Version Version { get; set; }
-        public PhysicalAddress PhysicalAddress { get; set; }
         public Runtime Runtime { get; set; }
         public OperatingSystem OperatingSystem { get; set; }
-        public Process Process { get; set; }
-
+        public bool Is64Bit { get; set; }
         public IEnumerable<DeviceSupportFlags> Supports { get; set; }
     }
 
@@ -38,13 +36,6 @@ namespace CoreFlora.Controllers
         public bool Is64Bit { get; set; }
         public string Name { get; set; }
         public TimeSpan Uptime { get; set; }
-    }
-
-    public class Process
-    {
-        public bool Is64Bit { get; set; }
-        public TimeSpan Uptime { get; set; }
-
     }
 
     [ApiController]
@@ -62,10 +53,12 @@ namespace CoreFlora.Controllers
         [HttpGet]
         public DeviceInformation Get()
         {
+            var assemblyName = Assembly.GetExecutingAssembly().GetName();
             return new DeviceInformation()
             {
-                Version = Assembly.GetExecutingAssembly().GetName().Version,
-                PhysicalAddress = NetworkInterface.GetAllNetworkInterfaces()
+                Version = assemblyName.Version,
+                Name = assemblyName.Name,
+                MACAddress = NetworkInterface.GetAllNetworkInterfaces()
                                                   .Where(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)
                                                   .Select(x => x.GetPhysicalAddress()).FirstOrDefault(),
                 Runtime = new Runtime
@@ -79,11 +72,8 @@ namespace CoreFlora.Controllers
                     Name = RuntimeInformation.OSDescription,
                     Uptime = GetOSUptime()
                 },
-                Process = new Process
-                {
-                    Is64Bit = Environment.Is64BitProcess,
-                    Uptime = GetProcessUptime()
-                },
+                Is64Bit = Environment.Is64BitProcess,
+                Uptime = GetProcessUptime(),
                 Supports = new[] { DeviceSupportFlags.Shutdown }
 
             };

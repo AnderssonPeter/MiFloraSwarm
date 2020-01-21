@@ -21,6 +21,7 @@ namespace MiFloraGateway
             sensorEntityType.HasMany(x => x.BatteryAndVersionReadings);
             sensorEntityType.HasMany(x => x.DataReadings);
             sensorEntityType.HasMany(x => x.Tags);
+            sensorEntityType.Collection.Function("Scan").ReturnsCollection<Sensor>();
 
             var deviceEntitySet = builder.EntitySet<Device>("Devices");
             var deviceEntityType = deviceEntitySet.EntityType;

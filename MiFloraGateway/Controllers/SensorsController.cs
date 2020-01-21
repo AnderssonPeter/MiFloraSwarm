@@ -117,8 +117,10 @@ namespace MiFloraGateway.Controllers
             return StatusCode((int)HttpStatusCode.NoContent);
         }
 
+        [HttpPut("Scan")]
         public async Task<IQueryable<Sensor>> ScanAsync()
         {
+            logger.LogTrace("ScanAsync");
             var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectSensorCommand>(dsc => dsc.CommandAsync(), HttpContext.RequestAborted).ConfigureAwait(false);            
             return databaseContext.Sensors.Where(x => ids.Contains(x.Id));
         }

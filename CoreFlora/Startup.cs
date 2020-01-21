@@ -5,12 +5,17 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MiFlora.Common;
 
 namespace CoreFlora
 {
@@ -27,6 +32,7 @@ namespace CoreFlora
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
+                    .AddControllersAsServices()
                     .AddJsonOptions(options =>
                     {
                         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -34,12 +40,15 @@ namespace CoreFlora
                         options.JsonSerializerOptions.Converters.Add(new PhysicalAddressConverter());
                         options.JsonSerializerOptions.Converters.Add(new VersionConverter());
                     });
+            services.AddSingleton<IHostingPort, HostingPort>();
             services.AddHostedService<DiscoverBackgroundService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostingPort hostingPort)
         {
+            var port = int.Parse(app.ServerFeatures.Get<IServerAddressesFeature>().Addresses.First(x => x.StartsWith("http://", StringComparison.OrdinalIgnoreCase)).Split(":").Last());
+            hostingPort.Port = port;
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -53,6 +62,31 @@ namespace CoreFlora
             {
                 endpoints.MapControllers();
             });
+        }
+    }
+
+    public interface IHostingPort
+    {
+        public int Port { get; set; }
+    }
+
+    public class HostingPort : IHostingPort
+    {
+        private int? hostringPort;
+        public int Port 
+        { 
+            get
+            {
+                return hostringPort.Value;
+            }
+            set
+            {
+                if (hostringPort.HasValue)
+                {
+                    throw new Exception("Can only set value once");
+                }
+                hostringPort = value;
+            }
         }
     }
 }

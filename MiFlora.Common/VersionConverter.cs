@@ -6,10 +6,15 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace CoreFlora
+namespace MiFlora.Common
 {
     public class VersionConverter : JsonConverter<Version>
     {
+        public override bool CanConvert(Type typeToConvert)
+        {
+            return base.CanConvert(typeToConvert);
+        }
+
         public override Version Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Debug.Assert(typeToConvert == typeof(Version));

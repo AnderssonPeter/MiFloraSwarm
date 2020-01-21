@@ -12,7 +12,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using MiFloraGateway.Devices;
 using Microsoft.AspNet.OData.Formatter.Serialization;
 using MiFloraGateway.Sensors;
@@ -28,6 +27,9 @@ using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet;
 using System.Threading;
+using Microsoft.Extensions.Hosting;
+using System.Text.Json.Serialization;
+using MiFlora.Common;
 
 namespace MiFloraGateway
 {
@@ -66,13 +68,20 @@ namespace MiFloraGateway
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(@"Server=(localdb)\MSSQLLocalDB;Integrated Security=true;"));
-                //.UseLiteDbStorage("HangFire.db", new LiteDbStorageOptions { }));
+                //.UseSqlServerStorage(@"Server=(localdb)\MSSQLLocalDB;Integrated Security=true;"));
+                .UseLiteDbStorage("HangFire.db", new LiteDbStorageOptions { }));
 
             services.AddHangfireServer();
 
-            services.AddMvc(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-                .AddJsonOptions(options => {
+            services.AddControllers(options => options.EnableEndpointRouting = false)
+                .AddControllersAsServices()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
+                    options.JsonSerializerOptions.Converters.Add(new PhysicalAddressConverter());
+                    options.JsonSerializerOptions.Converters.Add(new VersionConverter());
                 });
             //services.AddDbContextPool<DatabaseContext>(builder => builder.UseSqlite("Data Source=Database.db"));
             services.AddDbContextPool<DatabaseContext>(builder => builder.UseSqlServer(@"Data Source=THOR\SQLEXPRESS;Integrated Security=True;Connect Timeout=30;Database=MiFloraGateway"));
@@ -81,14 +90,14 @@ namespace MiFloraGateway
             //services.AddSingleton<IDeviceDetector, DeviceDetector>();
             services.AddSingleton<IDeviceLockManager, DeviceLockManager>();
             // In production, the React files will be served from this directory
-            services.AddSpaStaticFiles(configuration =>
+            /*services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
-            });
+            });*/
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IEnumerable<IRunOnStartup> runOnStartups, IRecurringJobManager recurringJobManager, DatabaseContext databaseContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IEnumerable<IRunOnStartup> runOnStartups, IRecurringJobManager recurringJobManager, DatabaseContext databaseContext)
         {
             databaseContext.Database.Migrate();
             if (env.IsDevelopment())
@@ -104,7 +113,7 @@ namespace MiFloraGateway
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseSpaStaticFiles();
+            //app.UseSpaStaticFiles();
 
             app.UseElmah();
             app.UseHangfireDashboard();

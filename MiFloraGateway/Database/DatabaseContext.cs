@@ -32,7 +32,7 @@ namespace MiFloraGateway.Database
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<Device>().HasKey(s => s.Id);
-            builder.Entity<Device>().Property(d => d.Id).UseSqlServerIdentityColumn();
+            builder.Entity<Device>().Property(d => d.Id).UseIdentityColumn();
             builder.Entity<Device>().HasIndex(d => d.MACAddress).IsUnique();
             builder.Entity<Device>().Property(d => d.MACAddress).IsRequired().HasMaxLength(17).IsFixedLength();
             builder.Entity<Device>().Property(d => d.IPAddress).IsRequired().HasMaxLength(45);
@@ -55,7 +55,7 @@ namespace MiFloraGateway.Database
             builder.Entity<LogEntry>().Property(dl => dl.Message).HasMaxLength(200);
 
             builder.Entity<Sensor>().HasKey(s => s.Id);
-            builder.Entity<Sensor>().Property(s => s.Id).UseSqlServerIdentityColumn();
+            builder.Entity<Sensor>().Property(s => s.Id).UseIdentityColumn();
             builder.Entity<Sensor>().HasIndex(d => d.MACAddress);
             builder.Entity<Sensor>().Property(s => s.MACAddress).IsRequired().HasMaxLength(17).IsFixedLength();
             builder.Entity<Sensor>().HasMany(s => s.DeviceDistances).WithOne(dsd => dsd.Sensor).HasForeignKey(dsd => dsd.SensorId);
@@ -76,7 +76,7 @@ namespace MiFloraGateway.Database
             builder.Entity<SensorTag>().Property(st => st.Value).IsRequired().HasMaxLength(32);
 
             builder.Entity<Plant>().HasKey(p => p.Id);
-            builder.Entity<Plant>().Property(p => p.Id).UseSqlServerIdentityColumn();
+            builder.Entity<Plant>().Property(p => p.Id).UseIdentityColumn();
             builder.Entity<Plant>().HasIndex(p => p.LatinName).IsUnique();
             builder.Entity<Plant>()
                 .HasOne(p => p.Basic)

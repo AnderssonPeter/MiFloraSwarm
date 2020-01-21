@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MiFlora.Common\MiFlora.Common.csproj" />
   </ItemGroup>
 
 </Project>

@@ -32,7 +32,7 @@ namespace MiFloraGateway.Sensors
             this.cancellationToken = cancellationTokenAccessor.Get();
         }
 
-        public async Task<IEnumerable<int>> CommandAsync()
+        public async Task<int[]> CommandAsync()
         {
             int retryCount = 3;
             int delayAfterFailure = 5;
@@ -46,7 +46,7 @@ namespace MiFloraGateway.Sensors
                 var scanTasks = devices.Select(async device => {
                     using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan, device: device))
                     {
-                        var result = await policy.ExecuteAndCaptureAsync(() => deviceService.ScanAsync(device.IPAddress, token));
+                        var result = await policy.ExecuteAndCaptureAsync(() => deviceService.ScanAsync(device, token));
                         if (result.Outcome == OutcomeType.Successful)
                         {
                             logger.LogInformation("Scan using {device} was successful, found {number} sensors", device, result.Result.Count());
@@ -92,7 +92,7 @@ namespace MiFloraGateway.Sensors
                 var addedSensors = databaseContext.ChangeTracker.Entries<Sensor>().Where(x => x.State == EntityState.Added).Select(x => x.Entity);
                 logger.LogInformation("Saving changes");
                 await databaseContext.SaveChangesAsync();
-                return addedSensors.Select(x => x.Id);
+                return addedSensors.Select(x => x.Id).ToArray();
             }
         }
     }

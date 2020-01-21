@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace CoreFlora
+namespace MiFlora.Common
 {
     public class TimeSpanConverter : JsonConverter<TimeSpan>
     {

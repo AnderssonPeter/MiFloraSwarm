@@ -11,6 +11,7 @@ namespace MiFloraGateway.Database
         public int Id { get; set; }
         public string MACAddress { get; set; }
         public string IPAddress { get; set; }
+        public int Port { get; set; }
         public string Name { get; set; }
         public ICollection<DeviceSensorDistance> SensorDistances { get; set; }
         public ICollection<DeviceTag> Tags { get; set; }

@@ -121,10 +121,10 @@ namespace MiFloraGateway.Controllers
         }
 
         [HttpPut("Scan")]
-        public async Task<IQueryable<Device>> Scan()
+        public async Task<IQueryable<Device>> ScanAsync()
         {
             logger.LogTrace("ScanAsync");
-            var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectDeviceCommand>(ddc => ddc.ScanAsync(HttpContext.RequestAborted), HttpContext.RequestAborted).ConfigureAwait(false);
+            var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectDeviceCommand>(ddc => ddc.ScanAsync(), HttpContext.RequestAborted).ConfigureAwait(false);
             return databaseContext.Devices.Where(x => ids.Contains(x.Id));
         }
 

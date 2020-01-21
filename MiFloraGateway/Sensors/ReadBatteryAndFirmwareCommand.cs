@@ -53,7 +53,7 @@ namespace MiFloraGateway.Sensors
                         try
                         {
                             logger.LogInformation("Trying to get battery and version for {sensor} using {device}", sensor, device);
-                            var result = await deviceService.GetBatteryAndVersionAsync(device.IPAddress, sensor.MACAddress, cancellationToken);
+                            var result = await deviceService.GetBatteryAndVersionAsync(device, sensor.MACAddress, cancellationToken);
                             databaseContext.DeviceSensorDistances.Add(new DeviceSensorDistance { Device = device, Sensor = sensor, When = DateTime.Now, Rssi = result.Rssi });
                             databaseContext.SensorBatteryReadings.Add(new SensorBatteryAndVersionReading { Sensor = sensor, When = DateTime.Now, Battery = result.Battery, Version = result.Version });
                             await databaseContext.SaveChangesAsync(cancellationToken);
