@@ -69,7 +69,8 @@ namespace CoreFlora
                         var value = JsonSerializer.Deserialize<DeviceDiscoveryRequest>(receiveResult.Buffer, this.jsonSerializerOptions);
                         logger.LogInformation($"Recived message from: {receiveResult.RemoteEndPoint}, name: {value.Name}, version: {value.Version}");
                         //Responde!
-                        var response = JsonSerializer.SerializeToUtf8Bytes(new DeviceDiscoveryResponse { Name = "CoreFlora", Version = Assembly.GetExecutingAssembly().GetName().Version, Port = this.hostingPort.Port }, this.jsonSerializerOptions);
+                        var assemblyName = Assembly.GetExecutingAssembly().GetName();
+                        var response = JsonSerializer.SerializeToUtf8Bytes(new DeviceDiscoveryResponse { Name = assemblyName.Name, Version = assemblyName.Version, Port = this.hostingPort.Port }, this.jsonSerializerOptions);
                         await client.SendAsync(response, response.Length, new IPEndPoint(IPAddress.Broadcast, serverPort));
                         logger.LogInformation("Response sent");
                     }

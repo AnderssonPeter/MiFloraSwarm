@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 
 namespace MiFloraGateway
 {
-    public class DataTransmitter : IRunOnStartup
+
+    public class DataTransmitter : IRunOnStartup, IDataTransmitter
     {
         private readonly ISettingsManager settingsManager;
         private readonly AsyncLock asyncLock = new AsyncLock();
@@ -48,6 +49,8 @@ namespace MiFloraGateway
             var mqttClientFactory = new MqttFactory();
             var builder = new MqttClientOptionsBuilder();
             var clientId = settingsManager.Get<string>(Settings.MQTTClientId);
+            var mqttServerAddress = settingsManager.Get<string>(Settings.MQTTServerAddress);
+            builder.WithTcpServer(mqttServerAddress);
             if (!string.IsNullOrWhiteSpace(clientId))
             {
                 builder.WithClientId(clientId);

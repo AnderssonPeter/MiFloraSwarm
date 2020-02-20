@@ -19,7 +19,7 @@ namespace MiFloraGateway.Database
 
         public override string ToString()
         {
-            return $"{Id} - {Name} - {IPAddress} - {MACAddress}";
+            return $"{Id:000} - {MACAddress} - {Name} - {IPAddress}";
         }
     }
 }

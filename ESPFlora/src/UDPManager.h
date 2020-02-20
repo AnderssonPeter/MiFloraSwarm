@@ -8,8 +8,9 @@ class UDPManager
 {
     WiFiUDP udp;
     char packetBuffer[255];
+    const char* deviceName;
     public:
-        UDPManager();
+        UDPManager(const char* deviceName);
         void handleRequests();
 };
 #endif

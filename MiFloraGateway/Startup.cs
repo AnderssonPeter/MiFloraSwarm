@@ -53,13 +53,17 @@ namespace MiFloraGateway
             services.AddHttpContextAccessor();
 
             //Register all commands
-            services.AddTransient<TestCommand>();
             services.AddTransient<IDetectDeviceCommand, DetectDeviceCommand>();
             services.AddTransient<IDetectSensorCommand, DetectSensorCommand>();
             services.AddTransient<IReadBatteryAndFirmwareCommand, ReadBatteryAndFirmwareCommand>();
             services.AddTransient<IReadValuesCommand, ReadValuesCommand>();
+            services.AddTransient<ISendValuesCommand, SendValuesCommand>();
             services.AddSingleton<IRunOnStartup, ReadBatteryAndFirmwareStartup>();
             services.AddSingleton<IRunOnStartup, ReadValuesSensorStartup>();
+
+            services.AddSingleton<IDataTransmitter, DataTransmitter>();
+            services.AddSingleton<IRunOnStartup>(sc => (IRunOnStartup)sc.GetRequiredService<IDataTransmitter>());
+
             services.AddSingleton<ISettingsManager, SettingsManager>();
             services.AddSingleton<IJobManager, JobManager>();
 
@@ -85,7 +89,7 @@ namespace MiFloraGateway
                 });
             //services.AddDbContextPool<DatabaseContext>(builder => builder.UseSqlite("Data Source=Database.db"));
             services.AddDbContextPool<DatabaseContext>(builder => builder.UseSqlServer(@"Data Source=THOR\SQLEXPRESS;Integrated Security=True;Connect Timeout=30;Database=MiFloraGateway"));
-            services.AddHttpClient<IDeviceService, DeviceService>();
+            services.AddHttpClient<IDeviceCommunicationService, DeviceCommunicationService>();
             //services.AddTransient<IDeviceService, DeviceService>();
             //services.AddSingleton<IDeviceDetector, DeviceDetector>();
             services.AddSingleton<IDeviceLockManager, DeviceLockManager>();
@@ -131,8 +135,6 @@ namespace MiFloraGateway
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });*/
-
-            recurringJobManager.AddOrUpdate<TestCommand>("Test", x => x.Run(null), "0 0 0 ? * *");
 
             foreach (var runOnStartup in runOnStartups)
             {

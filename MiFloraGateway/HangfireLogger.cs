@@ -88,7 +88,16 @@ namespace MiFloraGateway
             var context = contextAccessor.Get();
             if (context != null)
             {
-                context.WriteLine(GetConsoleColor(logLevel), $"{GetLogLevelString(logLevel)}: {formatter(state, exception)}");
+                var message = $"{GetLogLevelString(logLevel)}: {formatter(state, exception)}";
+                if (exception == null)
+                {
+                    context.WriteLine(GetConsoleColor(logLevel), message);
+                }
+                else
+                {
+                    context.WriteLine(GetConsoleColor(logLevel), message + Environment.NewLine + exception.ToString());
+                }
+                
             }
         }
     }

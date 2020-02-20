@@ -7,15 +7,11 @@
 #include "config.h"
 #include "esp_system.h"
 
-//todo:
-//* Watchdog
-//* Uptime in DeviceInformation
-
 static void log(String message)
 {
     Serial.println("main: " + message);
 }
-const int wdtTimeout = 30000;  //time in ms to trigger the watchdog
+const int wdtTimeout = 60 * 1000;  //time in ms to trigger the watchdog
 hw_timer_t *timer = NULL;
 
 void IRAM_ATTR resetModule(){
@@ -59,7 +55,7 @@ DeviceInformation onGetDeviceInformation()
 {
     log("onGetDeviceInformation");
     DeviceInformation result;
-    
+    result.name = String(deviceName);
     result.uptime = uptime->toString();
     result.address = wifiManager->getMACAddress();
 
@@ -90,14 +86,15 @@ DeviceInformation onGetDeviceInformation()
 
 void setup() {
     Serial.begin(115200);
+    
     log("Creating Uptime");
     uptime = new Uptime();
     log("Creating WiFiManager");
-    wifiManager = new WiFiManager(ssid, password);
+    wifiManager = new WiFiManager(deviceName, ssid, password);
     log("Connecting to wifi");
     wifiManager->connect();
     log("Creating BLEManager");
-    bleManager = new BLEManager();
+    bleManager = new BLEManager(deviceName);
     log("Creating WebServerManager");
     webServerManager = new WebServerManager();
     log("Configuring WebServerManager");
@@ -109,7 +106,7 @@ void setup() {
     log("Starting webServer");
     webServerManager->start();
 
-    updManager = new UDPManager();    
+    updManager = new UDPManager(deviceName);    
     log("starting watchdog");
     timer = timerBegin(0, 80, true);                  //timer 0, div 80
     timerAttachInterrupt(timer, &resetModule, true);  //attach callback

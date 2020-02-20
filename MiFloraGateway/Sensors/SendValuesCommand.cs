@@ -18,12 +18,12 @@ namespace MiFloraGateway.Sensors
 
     public class SendValuesCommand : ISendValuesCommand
     {
-        private readonly DataTransmitter dataTransmitter;
+        private readonly IDataTransmitter dataTransmitter;
         private readonly DatabaseContext databaseContext;
         private readonly ILogger<SendValuesCommand> logger;
         private readonly CancellationToken cancellationToken;
 
-        public SendValuesCommand(DataTransmitter dataTransmitter, DatabaseContext databaseContext, 
+        public SendValuesCommand(IDataTransmitter dataTransmitter, DatabaseContext databaseContext, 
                                  ILogger<SendValuesCommand> logger, ICancellationTokenAccessor cancellationTokenAccessor)
         {
             this.dataTransmitter = dataTransmitter;

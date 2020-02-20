@@ -64,7 +64,7 @@ namespace MiFloraGateway.Migrations
                     b.Property<DateTime>("When")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Rssi")
+                    b.Property<int?>("Rssi")
                         .HasColumnType("int");
 
                     b.HasKey("DeviceId", "SensorId", "When");

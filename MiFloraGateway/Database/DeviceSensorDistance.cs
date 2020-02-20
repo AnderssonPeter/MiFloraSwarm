@@ -14,6 +14,6 @@ namespace MiFloraGateway.Database
         public int DeviceId { get; set; }
         public int SensorId { get; set; }
 
-        public int Rssi { get; set; }
+        public int? Rssi { get; set; }
     }
 }

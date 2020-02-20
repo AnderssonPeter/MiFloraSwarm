@@ -6,10 +6,14 @@ static void log(String message)
     Serial.println("UDPManager: " + message);
 }
 
-UDPManager::UDPManager()
+const int serverPort = 16555;
+const int clientPort = 16556;
+
+UDPManager::UDPManager(const char* deviceName)
 {
-  Serial.print("Initializing udp port");
-  udp.begin(16555);
+    this->deviceName = deviceName;
+    Serial.print("Initializing udp port");
+    udp.begin(clientPort);
 }
 
 void UDPManager::handleRequests()
@@ -22,13 +26,13 @@ void UDPManager::handleRequests()
       if (len > 0) {
         packetBuffer[len] = 0;
       }
-      String str = "MiFlora-Client-ESP32-" + ESPFloraVersion;
+      String str = "{ \"name\": \"" + String(deviceName) + "\", \"version\": \"" + ESPFloraVersion + "\", \"port\": 80 }";
       log("Received \"" + String(packetBuffer) + "\", sending response \"" + str + "\"");
       //byte charBuf[str.length()];
       //str.getBytes(charBuf, str.length());
  
       
-      udp.beginPacket(udp.remoteIP(), udp.remotePort());
+      udp.beginPacket(udp.remoteIP(), serverPort);
       udp.print(str);
       //udp.write("MiFlora-Client-ESP32-");
       //udp.write(ESPFloraVersion);

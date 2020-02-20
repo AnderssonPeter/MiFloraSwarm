@@ -30,6 +30,7 @@ typedef struct {
 } SensorValues;
 
 typedef struct {
+    String name;
     String uptime;
     String address;
 

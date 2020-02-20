@@ -1,0 +1,17 @@
+/* You can add global styles to this file, and also import other style files */
+@charset "utf-8";
+@import "~bulma/bulma";
+@import "assets/ribbon.sass";
+
+html {
+    overflow-y: auto;
+}
+
+html, body {
+    background: url(assets/login-background.jpg) no-repeat 100% 0% fixed;
+    background-size: cover;
+}
+
+.ng-invalid.ng-touched {
+    @extend .is-danger;
+}

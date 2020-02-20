@@ -76,6 +76,7 @@ void WebServerManager::getDeviceInformation()
     log("getDeviceInformation");
     auto result = this->onGetDeviceInformationHandler();
     DynamicJsonDocument doc(2048);
+    doc["name"] = result.name;
     doc["version"] = ESPFloraVersion;
     doc["macAddress"] = result.address;
     doc["uptime"] = result.uptime;
@@ -116,10 +117,9 @@ void WebServerManager::scan()
     //handle on scan here!
     auto result = this->onScanHandler();
     DynamicJsonDocument doc(2048);
-    JsonArray Sensors = doc.createNestedArray("Sensors");
-    
+        
     for (int i = 0; i < result.size(); i++) {
-        JsonObject jsonSensor = Sensors.createNestedObject();
+        JsonObject jsonSensor = doc.createNestedObject();
 
         jsonSensor["name"] = result[i].name;
         jsonSensor["macAddress"] = result[i].address;

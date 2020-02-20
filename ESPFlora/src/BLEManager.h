@@ -8,9 +8,10 @@
 
 class BLEManager
 {
+    const char* deviceName;
     BLEScan* pBLEScan;
     public:
-        BLEManager();
+        BLEManager(const char* deviceName);
         std::vector<Sensor> scan();
         SensorVersionAndBattery getSensorVersionAndBattery(String address);
         SensorValues getSensorValues(String address);

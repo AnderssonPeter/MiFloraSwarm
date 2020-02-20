@@ -17,5 +17,10 @@ namespace MiFloraGateway.Database
         public ICollection<SensorDataReading> DataReadings { get; set; }
         public ICollection<SensorTag> Tags { get; set; }
         public ICollection<LogEntry> Logs { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Id:000} - {MACAddress} - {Name}";
+        }
     }
 }

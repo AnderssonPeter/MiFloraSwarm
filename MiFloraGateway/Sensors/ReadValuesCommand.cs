@@ -17,13 +17,13 @@ namespace MiFloraGateway.Sensors
         private readonly ILogger<ReadBatteryAndFirmwareCommand> logger;
         private readonly IDeviceLockManager deviceLockManager;
         private readonly DatabaseContext databaseContext;
-        private readonly IDeviceService deviceService;
+        private readonly IDeviceCommunicationService deviceService;
         private readonly IJobManager jobManager;
         private readonly CancellationToken cancellationToken;
 
         public ReadValuesCommand(ILogger<ReadBatteryAndFirmwareCommand> logger,
             IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
-            IDeviceService deviceService, IJobManager jobManager,
+            IDeviceCommunicationService deviceService, IJobManager jobManager,
             ICancellationTokenAccessor cancellationTokenAccessor)
         {
             this.logger = logger;
@@ -42,11 +42,8 @@ namespace MiFloraGateway.Sensors
                 foreach (var sensor in await databaseContext.Sensors.ToListAsync())
                 {
                     logger.LogInformation("Getting device priority for {sensor}", sensor);
-                    var devices = await databaseContext.DeviceSensorDistances
-                                                       .Where(x => x.Sensor == sensor)
-                                                       .GroupBy(x => x.Device, (key, x) => x.OrderByDescending(d => d.When).First())
-                                                       .OrderByDescending(x => x.Rssi)
-                                                       .Select(x => x.Device).ToListAsync(cancellationToken);
+                    var devices = await databaseContext.GetDeviceUsagePriority(sensor)
+                                                       .ToListAsync(cancellationToken);
                     foreach (var device in devices)
                     {
                         try
@@ -66,6 +63,7 @@ namespace MiFloraGateway.Sensors
                         catch (Exception ex)
                         {
                             logger.LogError(ex, "Failed to read the sensor values from {sensor} using {device}", sensor, device);
+                            //todo: if we failed x amount of times we should add a huge rssi so that we get lower priority!
                         }
                     }
                 }

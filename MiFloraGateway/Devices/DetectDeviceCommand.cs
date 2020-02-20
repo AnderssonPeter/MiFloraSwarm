@@ -23,13 +23,13 @@ namespace MiFloraGateway.Devices
     {
         private readonly ILogger<DetectDeviceCommand> logger;
         private readonly DatabaseContext databaseContext;
-        private readonly IDeviceService deviceService;
+        private readonly IDeviceCommunicationService deviceService;
         private readonly IDeviceLockManager deviceLockManager;
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly CancellationToken cancellationToken;
 
         public DetectDeviceCommand(ILogger<DetectDeviceCommand> logger, IDeviceLockManager deviceLockManager, 
-                                   DatabaseContext databaseContext, IDeviceService deviceService, 
+                                   DatabaseContext databaseContext, IDeviceCommunicationService deviceService, 
                                    IOptions<JsonOptions> options,
                                    ICancellationTokenAccessor cancellationTokenAccessor)
         {
@@ -109,7 +109,7 @@ namespace MiFloraGateway.Devices
                 }
                 catch(Exception ex)
                 {
-                    logger.LogError(ex, "Failed to secan for new devices");
+                    logger.LogError(ex, "Failed to scan for new devices");
                     logEntry.Failure(ex.ToString());
                 }
             }
