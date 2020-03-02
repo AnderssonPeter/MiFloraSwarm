@@ -1,7 +1,29 @@
-<div>
-</div>
-<div class="container is-fluid">
-    <router-outlet></router-outlet>
-</div>
-<div>
+<div class="columns is-gapless">
+    <aside class="column is-narrow">
+        <nav class="menu is-expanded">
+            <ul class="menu-list">
+                <li *ngFor="let menuItem of menuItems">
+                    <a>
+                        <span class="icon is-small">
+                            <fa-icon [icon]="menuItem.icon"></fa-icon>
+                        </span>
+                        <span class="menu-item-label">{{menuItem.label}}</span>
+                    </a>
+                </li>
+            </ul>
+            <ul class="menu-list">
+                <li class="logout">
+                    <a>
+                        <span class="icon is-small">
+                            <fa-icon [icon]="icons.logout"></fa-icon>
+                        </span>
+                        <span class="menu-item-label">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="column">
+        <router-outlet></router-outlet>
+    </main>
 </div>

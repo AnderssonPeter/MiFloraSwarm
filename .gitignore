@@ -338,3 +338,5 @@ config.h
 
 HangFire.db
 HangFire-journal.db
+
+dist

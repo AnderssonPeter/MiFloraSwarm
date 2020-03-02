@@ -8,7 +8,7 @@
                             <div class="control has-icons-left has-icons-right">
                                 <input class="input" type="text" placeholder="Username" formControlName="username">
                                 <span class="icon is-small is-left">
-                                    <fa-icon icon="user"></fa-icon>
+                                    <fa-icon [icon]="icons.username"></fa-icon>
                                 </span>
                             </div>
                         </div>
@@ -16,7 +16,7 @@
                             <div class="control has-icons-left has-icons-right">
                                 <input class="input" type="password" placeholder="Password" formControlName="password">
                                 <span class="icon is-small is-left">
-                                    <fa-icon icon="lock"></fa-icon>
+                                    <fa-icon [icon]="icons.password"></fa-icon>
                                 </span>
                             </div>
                         </div>
@@ -24,8 +24,10 @@
                             <div class="control">
                                 <button class="button is-primary" type="submit" [ngClass]="{ 'is-loading': loading }" [disabled]="!loginForm.valid || loading">Login</button>
                             </div>
-                            <span class="label">error</span>
-                        </div>                   
+                            <div class="control">
+                                <p class="has-text-danger">error</p>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

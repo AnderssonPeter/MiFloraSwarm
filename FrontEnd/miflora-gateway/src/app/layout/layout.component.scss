@@ -1,0 +1,29 @@
+@import "~src/variables.scss";
+
+aside {
+    background-color: $grey-darker;
+    height: 100vh;
+    
+    .menu-item-label {
+        display: none;
+
+    }
+
+    nav {
+        
+    
+        .icon {
+            width: 4.5em;
+        }
+
+        &.is-expanded {
+    
+            .icon {
+                width: 3rem;
+            }
+            .menu-item-label {
+                display: initial;
+            }
+        }
+    }
+}

@@ -4,16 +4,17 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
-import { fas } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LoginComponent } from './login/login.component';
 import { LayoutComponent } from './layout/layout.component';
+import { SettingsComponent } from './settings/settings.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    LayoutComponent
+    LayoutComponent,
+    SettingsComponent
   ],
   imports: [
     BrowserModule,
@@ -26,7 +27,6 @@ import { LayoutComponent } from './layout/layout.component';
   bootstrap: [AppComponent]
 })
 export class AppModule { 
-  constructor(library: FaIconLibrary) {
-    library.addIconPacks(fas);
+  constructor() {
   }
 }
