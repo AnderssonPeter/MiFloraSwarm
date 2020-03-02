@@ -1,28 +1,59 @@
 @import "~src/variables.scss";
 
+
+nav.navbar {
+    .navbar-item > .icon {
+        padding-left: $block-spacing / 2;
+        padding-right: $block-spacing;            
+        width: 2rem;
+    }
+}
+
 aside {
     background-color: $grey-darker;
     height: 100vh;
     
     .menu-item-label {
         display: none;
-
     }
 
     nav {
-        
+        a {
+            padding-left: 0;
+            padding-right: 0;
+
+            color: $white-ter;
+            &.active {
+                color: $primary;
+            }
+        }
     
         .icon {
-            width: 4.5em;
+            width: 3em;
         }
 
         &.is-expanded {
-    
+            min-width: 200px;
+
             .icon {
-                width: 3rem;
+                padding-left: $block-spacing;
+                padding-right: $block-spacing;
+                width: 2rem;
             }
+
             .menu-item-label {
                 display: initial;
+            }
+        }
+
+        .logout, .toggle-size {
+            a {
+                color: $white;
+                background-color: $blue;
+                &:hover {
+                    color: $blue;
+                    background-color: $white;
+                }
             }
         }
     }

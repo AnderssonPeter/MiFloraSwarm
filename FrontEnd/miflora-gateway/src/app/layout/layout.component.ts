@@ -7,6 +7,7 @@ import { faCogs, faHdd, faEye, faMicrochip, faSeedling, faAngleDoubleRight, faAn
   styleUrls: ['./layout.component.scss']
 })
 export class LayoutComponent implements OnInit {
+  expanded: boolean = false
   icons = {
     expand: faAngleDoubleRight,
     contract: faAngleDoubleLeft,
@@ -21,6 +22,10 @@ export class LayoutComponent implements OnInit {
     { icon: faHdd, label: 'Tasks', route: '' },
     { icon: faInfoCircle, label: 'About', route: '' }
   ]
+
+  toggle() {
+    this.expanded = !this.expanded;
+  }
 
   constructor() { }
 

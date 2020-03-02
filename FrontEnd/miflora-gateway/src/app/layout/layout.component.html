@@ -1,9 +1,53 @@
+<nav class="navbar is-hidden-tablet is-dark" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <div class="navbar-item">
+            <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
+        </div>
+    
+        <a role="button" class="navbar-burger burger" aria-label="menu" (click)="toggle()">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+    <div class="navbar-menu" [ngClass]="{ 'is-active': expanded }">
+        <div class="navbar-start">
+            <a class="navbar-item" *ngFor="let menuItem of menuItems">
+                <span class="icon is-small">
+                    <fa-icon [icon]="menuItem.icon"></fa-icon>
+                </span>
+                <span>{{menuItem.label}}</span>
+            </a>
+        </div>
+    
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <div class="buttons">
+                    <a class="button is-link">
+                        <span class="icon is-small">
+                            <fa-icon [icon]="icons.logout"></fa-icon>
+                        </span>
+                        <strong>Logout</strong>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
 <div class="columns is-gapless">
-    <aside class="column is-narrow">
-        <nav class="menu is-expanded">
+    <aside class="column is-narrow is-hidden-mobile">
+        <nav class="menu" [ngClass]="{ 'is-expanded': expanded }">
             <ul class="menu-list">
+                <li class="toggle-size">
+                    <a class="has-text-weight-semibold" (click)="toggle()">
+                        <span class="icon is-small">
+                            <fa-icon [icon]="expanded ? icons.contract : icons.expand"></fa-icon>
+                        </span>
+                        <span class="menu-item-label">Contract</span>
+                    </a>
+                </li>
                 <li *ngFor="let menuItem of menuItems">
-                    <a>
+                    <a class="has-text-weight-semibold">
                         <span class="icon is-small">
                             <fa-icon [icon]="menuItem.icon"></fa-icon>
                         </span>
@@ -13,7 +57,7 @@
             </ul>
             <ul class="menu-list">
                 <li class="logout">
-                    <a>
+                    <a class="has-text-weight-semibold">
                         <span class="icon is-small">
                             <fa-icon [icon]="icons.logout"></fa-icon>
                         </span>
