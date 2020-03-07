@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { faCogs, faHdd, faEye, faMicrochip, faSeedling, faAngleDoubleRight, faAngleDoubleLeft, faMagic, faInfoCircle, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { SizeProp } from '@fortawesome/fontawesome-svg-core';
+
+export type RouteDate = { label, icon }
 
 @Component({
   selector: 'app-layout',
@@ -14,22 +18,31 @@ export class LayoutComponent implements OnInit {
     logout: faSignOutAlt
   }
   menuItems = [
-    { icon: faEye, label: 'Overview', route: '' },
-    { icon: faMicrochip, label: 'Devices', route: '' },
-    { icon: faMagic, label: 'Sensors', route: '' },
-    { icon: faSeedling, label: 'Plants', route: '' },
-    { icon: faCogs, label: 'Settings', route: '' },
-    { icon: faHdd, label: 'Tasks', route: '' },
-    { icon: faInfoCircle, label: 'About', route: '' }
-  ]
+    { icon: faEye, label: 'Overview', route: '/overview' },
+    { icon: faMicrochip, label: 'Devices', route: '/devices' },
+    { icon: faMagic, label: 'Sensors', route: '/sensors' },
+    { icon: faSeedling, label: 'Plants', route: '/plants' },
+    { icon: faCogs, label: 'Settings', route: '/settings' },
+    { icon: faHdd, label: 'Tasks', route: '/tasks' },
+    { icon: faInfoCircle, label: 'About', route: '/about' }
+  ];
+  currentPage = { label: '', icon: null };
+  constructor(private router: Router, private activatedRoute: ActivatedRoute) {
+    
+    router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.currentPage = activatedRoute.snapshot.children[0].data as RouteDate;
+      }
+    });
+  }
+
+  ngOnInit(): void {
+  }
+
+  
 
   toggle() {
     this.expanded = !this.expanded;
-  }
-
-  constructor() { }
-
-  ngOnInit(): void {
   }
 
 }

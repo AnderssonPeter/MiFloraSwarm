@@ -8,13 +8,25 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LoginComponent } from './login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { SettingsComponent } from './settings/settings.component';
+import { OverviewComponent } from './overview/overview.component';
+import { DevicesComponent } from './devices/devices.component';
+import { SensorsComponent } from './sensors/sensors.component';
+import { PlantsComponent } from './plants/plants.component';
+import { AboutComponent } from './about/about.component';
+import { TasksComponent } from './tasks/tasks.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     LayoutComponent,
-    SettingsComponent
+    SettingsComponent,
+    OverviewComponent,
+    DevicesComponent,
+    SensorsComponent,
+    PlantsComponent,
+    AboutComponent,
+    TasksComponent
   ],
   imports: [
     BrowserModule,

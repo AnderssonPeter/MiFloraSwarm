@@ -18,6 +18,12 @@ aside {
     }
 
     nav {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        .middle-items {
+            flex-grow: 1;
+        }
         a {
             padding-left: 0;
             padding-right: 0;
@@ -55,6 +61,19 @@ aside {
                     background-color: $white;
                 }
             }
+        }
+    }
+}
+
+main {
+    background-color: rgba(255, 255, 255, 0.8);
+    .section {
+        padding: 1.5rem;
+    }
+    .is-title-bar {
+        font-size: 2rem;
+        .icon {
+            margin-right: 0.5rem;
         }
     }
 }
