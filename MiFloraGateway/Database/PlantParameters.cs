@@ -5,7 +5,9 @@
         public int PlantId { get; set; }
         public Plant Plant { get; set; }
 
-        //?
+        /// <summary>
+        /// ?
+        /// </summary>
         public Range EnvironmentHumidity { get; set; }
 
         /// <summary>

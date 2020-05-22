@@ -1,7 +1,5 @@
-﻿using Hangfire;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Hangfire;
 
 namespace MiFloraGateway.Devices
 {

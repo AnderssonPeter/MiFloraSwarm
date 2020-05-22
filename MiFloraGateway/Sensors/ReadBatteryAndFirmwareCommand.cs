@@ -1,15 +1,12 @@
-﻿using Hangfire;
-using Hangfire.Console;
-using Hangfire.Server;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Hangfire;
+using Hangfire.Console.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiFloraGateway.Database;
 using MiFloraGateway.Devices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MiFloraGateway.Sensors
 {
@@ -23,23 +20,23 @@ namespace MiFloraGateway.Sensors
         private readonly CancellationToken cancellationToken;
 
         public ReadBatteryAndFirmwareCommand(ILogger<ReadBatteryAndFirmwareCommand> logger,
-            IDeviceLockManager deviceLockManager, DatabaseContext databaseContext, 
+            IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
             IDeviceCommunicationService deviceService, IJobManager jobManager,
-            ICancellationTokenAccessor cancellationTokenAccessor)
+            IJobCancellationToken cancellationToken)
         {
             this.logger = logger;
             this.deviceLockManager = deviceLockManager;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
             this.jobManager = jobManager;
-            this.cancellationToken = cancellationTokenAccessor.Get();
+            this.cancellationToken = cancellationToken.ShutdownToken;
         }
 
         public async Task CommandAsync()
         {
             logger.LogTrace("CommandAsync");
             using (await deviceLockManager.LockAsync(cancellationToken))
-            {   
+            {
                 foreach (var sensor in await databaseContext.Sensors.ToListAsync())
                 {
                     logger.LogInformation("Getting device priority for {sensor}", sensor);
@@ -58,7 +55,7 @@ namespace MiFloraGateway.Sensors
 
                             logger.LogInformation("Triggering a send of the new values!");
                             jobManager.Start<ISendValuesCommand>(command => command.CommandAsync(sensor.Id));
-                            
+
                             break; //We managed to scan the sensor successfully no need to try any other devices!
                         }
                         catch (Exception ex)

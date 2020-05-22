@@ -1,35 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
-using MiFloraGateway.Database;
-using Microsoft.AspNet.OData.Extensions;
+using ElmahCore;
+using ElmahCore.Mvc;
+using Hangfire;
+using Hangfire.Console;
+using Hangfire.Console.Extensions;
+using Hangfire.LiteDB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MiFloraGateway.Devices;
-using Microsoft.AspNet.OData.Formatter.Serialization;
-using MiFloraGateway.Sensors;
-using ElmahCore.Mvc;
-using Hangfire.Logging;
-using Hangfire;
-using Hangfire.LiteDB;
-using ElmahCore;
-using System.IO;
-using System.Reflection;
-using Hangfire.Console;
-using MQTTnet.Client;
-using MQTTnet.Client.Options;
-using MQTTnet;
-using System.Threading;
 using Microsoft.Extensions.Hosting;
-using System.Text.Json.Serialization;
-using MiFlora.Common;
+using MiFloraGateway.Database;
+using MiFloraGateway.Devices;
+using MiFloraGateway.Sensors;
 
 namespace MiFloraGateway
 {
@@ -45,8 +36,7 @@ namespace MiFloraGateway
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(x => x.AddHangfireConsole());
-            services.AddOData();
+            //services.AddOData();
             var logPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "log");
             services.AddElmah<XmlFileErrorLog>(options => options.LogPath = logPath);
             //services.AddElmah();
@@ -65,7 +55,12 @@ namespace MiFloraGateway
             services.AddSingleton<IRunOnStartup>(sc => (IRunOnStartup)sc.GetRequiredService<IDataTransmitter>());
 
             services.AddSingleton<ISettingsManager, SettingsManager>();
-            services.AddSingleton<IJobManager, JobManager>();
+            services.AddTransient<Func<Task<IdentityUser>>>(sc =>
+            {
+                var identity = sc.GetRequiredService<IHttpContextAccessor>().HttpContext.User;
+                var userManager = sc.GetRequiredService<UserManager<IdentityUser>>();
+                return () => userManager.GetUserAsync(identity);
+            });
 
             services.AddHangfire((serviceProvider, configuration) => configuration
                 .UseConsole()
@@ -76,28 +71,56 @@ namespace MiFloraGateway
                 .UseLiteDbStorage("HangFire.db", new LiteDbStorageOptions { }));
 
             services.AddHangfireServer();
+            services.AddHangfireConsoleExtensions();
 
-            services.AddControllers(options => options.EnableEndpointRouting = false)
+            services.AddControllers(options =>
+                {
+                    options.Filters.Add<ValidatorActionFilter>();
+                })
                 .AddControllersAsServices()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                    options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
-                    options.JsonSerializerOptions.Converters.Add(new PhysicalAddressConverter());
-                    options.JsonSerializerOptions.Converters.Add(new VersionConverter());
-                });
+                .AddNewtonsoftJson();
+            /*.AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
+                options.JsonSerializerOptions.Converters.Add(new PhysicalAddressConverter());
+                options.JsonSerializerOptions.Converters.Add(new VersionConverter());
+            });*/
             //services.AddDbContextPool<DatabaseContext>(builder => builder.UseSqlite("Data Source=Database.db"));
             services.AddDbContextPool<DatabaseContext>(builder => builder.UseSqlServer(@"Data Source=THOR\SQLEXPRESS;Integrated Security=True;Connect Timeout=30;Database=MiFloraGateway"));
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+            }).AddEntityFrameworkStores<DatabaseContext>();
+
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.Secure = CookieSecurePolicy.SameAsRequest;
+            });
+
+            services.AddAuthentication("CookieAuthentication")
+                 .AddCookie("CookieAuthentication", options =>
+                 {
+                     options.Cookie.Name = "MifloraAuth";
+                     options.Cookie.HttpOnly = true;
+                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                     options.Cookie.SameSite = SameSiteMode.Strict;
+                     options.SlidingExpiration = true;
+                     options.ExpireTimeSpan = new TimeSpan(1, 0, 0);
+                 });
+
             services.AddHttpClient<IDeviceCommunicationService, DeviceCommunicationService>();
             //services.AddTransient<IDeviceService, DeviceService>();
             //services.AddSingleton<IDeviceDetector, DeviceDetector>();
             services.AddSingleton<IDeviceLockManager, DeviceLockManager>();
             // In production, the React files will be served from this directory
-            /*services.AddSpaStaticFiles(configuration =>
+            services.AddSingleton(GraphQLSchema.MakeSchema());
+            services.AddSpaStaticFiles(configuration =>
             {
-                configuration.RootPath = "ClientApp/build";
-            });*/
+                configuration.RootPath = "wwwroot";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -111,30 +134,41 @@ namespace MiFloraGateway
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
+            if (!env.IsDevelopment())
+            {
+                app.UseSpaStaticFiles();
+            }
+
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
             //app.UseSpaStaticFiles();
 
-            app.UseElmah();
-            app.UseHangfireDashboard();
-
-            app.UseMvc(builder => {
+            /*app.UseMvc(builder => {
                 builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count();
                 builder.MapODataServiceRoute("odata", "odata", ODataModelBuilder.GetEdmModel());
-            });
+            });*/
 
             /*app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "ClientApp";
+                spa.Options.SourcePath = "../FrontEnd/miflora-gateway";
                 if (env.IsDevelopment())
                 {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
+                    spa.UseAngularCliServer(npmScript: "start");
                 }
             });*/
+
+            app.UseElmah();
+            app.UseHangfireDashboard();
 
             foreach (var runOnStartup in runOnStartups)
             {

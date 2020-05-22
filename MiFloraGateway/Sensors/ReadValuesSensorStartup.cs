@@ -6,7 +6,7 @@ namespace MiFloraGateway.Sensors
     {
         private readonly IRecurringJobManager recurringJobManager;
         private readonly ISettingsManager settingsManager;
-        
+
         public ReadValuesSensorStartup(IRecurringJobManager recurringJobManager, ISettingsManager settingsManager)
         {
             this.recurringJobManager = recurringJobManager;

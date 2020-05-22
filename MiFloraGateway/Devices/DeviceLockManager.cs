@@ -1,11 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using MiFloraGateway.Database;
-using Nito.AsyncEx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Nito.AsyncEx;
 
 namespace MiFloraGateway.Devices
 {

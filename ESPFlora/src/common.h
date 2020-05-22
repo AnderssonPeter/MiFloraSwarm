@@ -5,7 +5,7 @@
 
 enum Status {Success, NotFound};
 
-static const String ESPFloraVersion = "1.0";
+static const String ESPFloraVersion = "0.1";
 
 typedef struct {
     String address;

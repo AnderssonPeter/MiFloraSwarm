@@ -1,9 +1,9 @@
-﻿using MiFlora.Common;
-using MiFloraGateway.Database;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using MiFlora.Common;
+using MiFloraGateway.Database;
 
 namespace MiFloraGateway.Devices
 {

@@ -1,5 +1,4 @@
-﻿using Hangfire.Server;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace MiFloraGateway.Sensors
 {

@@ -124,7 +124,7 @@
 //                await scanTrigger.WaitAsync(cancellationToken);
 //                var message = "MiFlora-Server-" + Assembly.GetExecutingAssembly().GetName().Version.ToString();
 //                var buffer = Encoding.UTF8.GetBytes(message);
-                
+
 //                await client.SendAsync(buffer, buffer.Length, new IPEndPoint(IPAddress.Broadcast, port));
 //                await Task.Delay(300);
 //                /*await client.SendAsync(buffer, buffer.Length, new IPEndPoint(IPAddress.Broadcast, port));

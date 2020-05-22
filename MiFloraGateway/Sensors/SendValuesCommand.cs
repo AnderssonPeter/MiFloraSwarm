@@ -1,13 +1,10 @@
-﻿using Hangfire.Server;
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiFloraGateway.Database;
-using MQTTnet.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MiFloraGateway.Sensors
 {
@@ -23,13 +20,13 @@ namespace MiFloraGateway.Sensors
         private readonly ILogger<SendValuesCommand> logger;
         private readonly CancellationToken cancellationToken;
 
-        public SendValuesCommand(IDataTransmitter dataTransmitter, DatabaseContext databaseContext, 
-                                 ILogger<SendValuesCommand> logger, ICancellationTokenAccessor cancellationTokenAccessor)
+        public SendValuesCommand(IDataTransmitter dataTransmitter, DatabaseContext databaseContext,
+                                 ILogger<SendValuesCommand> logger, IJobCancellationToken cancellationToken)
         {
             this.dataTransmitter = dataTransmitter;
             this.databaseContext = databaseContext;
             this.logger = logger;
-            this.cancellationToken = cancellationTokenAccessor.Get();
+            this.cancellationToken = cancellationToken.ShutdownToken;
         }
 
         public async Task CommandAsync(int sensorId)

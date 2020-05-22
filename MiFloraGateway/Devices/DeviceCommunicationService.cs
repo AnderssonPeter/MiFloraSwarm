@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
-using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +40,7 @@ namespace MiFloraGateway.Devices
             }
         }
 
-        public Task<IEnumerable<SensorInfo>> ScanAsync(IPEndPoint endpoint, CancellationToken cancellationToken = default) => 
+        public Task<IEnumerable<SensorInfo>> ScanAsync(IPEndPoint endpoint, CancellationToken cancellationToken = default) =>
             GetAsync<IEnumerable<SensorInfo>>(endpoint, "sensors/scan", cancellationToken);
 
         public Task<BatteryAndVersionInfo> GetBatteryAndVersionAsync(IPEndPoint endpoint, string sensorAddress, CancellationToken cancellationToken = default) =>

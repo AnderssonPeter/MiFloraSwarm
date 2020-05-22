@@ -1,14 +1,11 @@
-﻿using MQTTnet;
-using MQTTnet.Client;
-using MQTTnet.Client.Options;
-using MQTTnet.Extensions.ManagedClient;
-using Nito.AsyncEx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MQTTnet;
+using MQTTnet.Client.Options;
+using MQTTnet.Extensions.ManagedClient;
+using Nito.AsyncEx;
 
 namespace MiFloraGateway
 {
@@ -64,11 +61,11 @@ namespace MiFloraGateway
             }
 
             var useTLS = settingsManager.Get<bool>(Settings.MQTTUseTLS);
-            if(useTLS)
+            if (useTLS)
             {
                 builder.WithTls();
             }
-            
+
             var options = builder.Build();
 
 

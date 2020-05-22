@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,12 +30,18 @@ namespace MiFloraGateway.Database
         {
             builder.Entity<Device>().HasKey(s => s.Id);
             builder.Entity<Device>().Property(d => d.Id).UseIdentityColumn();
-            builder.Entity<Device>().HasIndex(d => d.MACAddress).IsUnique();
+
             builder.Entity<Device>().Property(d => d.MACAddress).IsRequired().HasMaxLength(17).IsFixedLength();
+            builder.Entity<Device>().HasIndex(d => d.MACAddress).IsUnique();
+
             builder.Entity<Device>().Property(d => d.IPAddress).IsRequired().HasMaxLength(45);
+            builder.Entity<Device>().HasIndex(d => d.IPAddress).IsUnique();
+
+            builder.Entity<Device>().HasIndex(d => d.Name).IsUnique();
+
             builder.Entity<Device>().HasMany(d => d.SensorDistances).WithOne(dsd => dsd.Device).HasForeignKey(dsd => dsd.DeviceId);
             builder.Entity<Device>().HasMany(d => d.Tags).WithOne(dt => dt.Device).HasForeignKey(dt => dt.DeviceId);
-            builder.Entity<Device>().HasMany(d => d.Logs).WithOne(le => le.Device).HasForeignKey(le => le.DeviceId); 
+            builder.Entity<Device>().HasMany(d => d.Logs).WithOne(le => le.Device).HasForeignKey(le => le.DeviceId);
 
             builder.Entity<DeviceTag>().HasKey(dt => new { dt.DeviceId, dt.Tag });
             builder.Entity<DeviceTag>().Property(dt => dt.Tag).HasMaxLength(32);
@@ -110,9 +113,9 @@ namespace MiFloraGateway.Database
             base.OnModelCreating(builder);
         }
 
-        public LogEntryHandler AddLogEntry(LogEntryEvent @event, Device device = null, Sensor sensor = null)
+        public LogEntryHandler AddLogEntry(LogEntryEvent @event, Device device = null, Sensor sensor = null, Plant plant = null, IdentityUser user = null)
         {
-            return new LogEntryHandler(this, @event, device, sensor);
+            return new LogEntryHandler(this, @event, device: device, sensor: sensor, plant: plant, user: user);
         }
 
     }
@@ -130,20 +133,26 @@ namespace MiFloraGateway.Database
         private readonly LogEntryEvent @event;
         private readonly Device device;
         private readonly Sensor sensor;
+        private readonly Plant plant;
+        private readonly IdentityUser user;
         private readonly DateTime when = DateTime.Now;
         private bool saved = false;
 
-        public LogEntryHandler(DatabaseContext databaseContext, LogEntryEvent @event, Device device = null, Sensor sensor = null)
+        public LogEntryHandler(DatabaseContext databaseContext, LogEntryEvent @event, Device device = null, Sensor sensor = null, Plant plant = null, IdentityUser user = null)
         {
             this.databaseContext = databaseContext;
             this.@event = @event;
             this.device = device;
             this.sensor = sensor;
+            this.plant = plant;
+            this.user = user;
         }
 
         public void Success(string message = null) => Save(LogEntryResult.Successful, message);
 
         public void Failure(string message = null) => Save(LogEntryResult.Failed, message);
+
+        public void Failure(Exception ex, string message = null) => Save(LogEntryResult.Failed, ex.ToString() + Environment.NewLine + message);
 
         private void Save(LogEntryResult result, string message)
         {
@@ -151,6 +160,8 @@ namespace MiFloraGateway.Database
             {
                 Device = device,
                 Sensor = sensor,
+                Plant = plant,
+                User = user,
                 When = when,
                 Duration = DateTime.Now.Subtract(when),
                 Event = @event,

@@ -86,7 +86,7 @@
 //                await Task.Delay(updateDistanceIntervall, cancellationToken);
 //                using (deviceLockManager.LockAsync(cancellationToken))
 //                {
-                    
+
 //                }
 //            }
 //        }

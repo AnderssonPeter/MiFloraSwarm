@@ -1,15 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using MiFloraGateway.Database;
-using MiFloraGateway.Devices;
-using Polly;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Hangfire;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using MiFloraGateway.Database;
+using MiFloraGateway.Devices;
+using Polly;
 
 namespace MiFloraGateway.Sensors
 {
@@ -21,18 +21,18 @@ namespace MiFloraGateway.Sensors
         private readonly IDeviceCommunicationService deviceService;
         private readonly CancellationToken cancellationToken;
 
-        public DetectSensorCommand(ILogger<DetectSensorCommand> logger, IDeviceCommunicationService deviceService, 
+        public DetectSensorCommand(ILogger<DetectSensorCommand> logger, IDeviceCommunicationService deviceService,
                                    IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
-                                   ICancellationTokenAccessor cancellationTokenAccessor)
+                                   IJobCancellationToken cancellationToken)
         {
             this.logger = logger;
             this.deviceLockManager = deviceLockManager;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
-            this.cancellationToken = cancellationTokenAccessor.Get();
+            this.cancellationToken = cancellationToken.ShutdownToken;
         }
 
-        public async Task<int[]> CommandAsync()
+        public async Task<int[]> ScanAsync()
         {
             int retryCount = 3;
             int delayAfterFailure = 5;
@@ -43,7 +43,8 @@ namespace MiFloraGateway.Sensors
             var policy = Policy.Handle<HttpRequestException>().Or<OperationCanceledException>().WaitAndRetryAsync(retryCount, i => TimeSpan.FromSeconds(delayAfterFailure));
             using (await deviceLockManager.LockAsync(token))
             {
-                var scanTasks = devices.Select(async device => {
+                var scanTasks = devices.Select(async device =>
+                {
                     using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan, device: device))
                     {
                         var result = await policy.ExecuteAndCaptureAsync(() => deviceService.ScanAsync(device, token));
@@ -83,7 +84,7 @@ namespace MiFloraGateway.Sensors
 
                             var foundSensorIds = sensorInfos.Select(x => x.MACAddress);
                             var missedSensors = databaseContext.GetLatestSensorsForDevice(device).Where(sensor => !foundSensorIds.Contains(sensor.MACAddress));
-                            foreach(var missedSensor in missedSensors)
+                            foreach (var missedSensor in missedSensors)
                             {
                                 //We found a sensor using this device before but not this time, so we should not use this device to scan for it again!
                                 databaseContext.DeviceSensorDistances.Add(new DeviceSensorDistance

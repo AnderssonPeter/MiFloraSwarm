@@ -1,14 +1,12 @@
-﻿using Hangfire;
-using Hangfire.Server;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Hangfire;
+using Hangfire.Console.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiFloraGateway.Database;
 using MiFloraGateway.Devices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MiFloraGateway.Sensors
 {
@@ -24,14 +22,14 @@ namespace MiFloraGateway.Sensors
         public ReadValuesCommand(ILogger<ReadBatteryAndFirmwareCommand> logger,
             IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
             IDeviceCommunicationService deviceService, IJobManager jobManager,
-            ICancellationTokenAccessor cancellationTokenAccessor)
+            IJobCancellationToken cancellationToken)
         {
             this.logger = logger;
             this.deviceLockManager = deviceLockManager;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
             this.jobManager = jobManager;
-            this.cancellationToken = cancellationTokenAccessor.Get();
+            this.cancellationToken = cancellationToken.ShutdownToken;
         }
 
         public async Task CommandAsync()
@@ -51,7 +49,7 @@ namespace MiFloraGateway.Sensors
                             logger.LogInformation("Trying to get values for {sensor} using {device}", sensor, device);
                             var result = await deviceService.GetValuesAsync(device, sensor.MACAddress, cancellationToken);
                             databaseContext.DeviceSensorDistances.Add(new DeviceSensorDistance { Device = device, Sensor = sensor, When = DateTime.Now, Rssi = result.Rssi });
-                            databaseContext.SensorDataReadings.Add(new SensorDataReading{ Sensor = sensor, When = DateTime.Now, Brightness = result.Brightness, Conductivity = result.Conductivity, Moisture = result.Moisture, Temperature = result.Temperature });
+                            databaseContext.SensorDataReadings.Add(new SensorDataReading { Sensor = sensor, When = DateTime.Now, Brightness = result.Brightness, Conductivity = result.Conductivity, Moisture = result.Moisture, Temperature = result.Temperature });
                             logger.LogTrace("Saving changes");
                             await databaseContext.SaveChangesAsync(cancellationToken);
                             logger.LogInformation("Saved new sensor values");

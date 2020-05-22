@@ -1,7 +1,7 @@
-﻿using ElmahCore;
+﻿using System;
+using ElmahCore;
 using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
-using System;
 
 namespace MiFloraGateway
 {

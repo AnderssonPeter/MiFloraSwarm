@@ -1,21 +1,20 @@
-﻿using Hangfire;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MiFlora.Common;
-using MiFloraGateway.Database;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Hangfire;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MiFlora.Common;
+using MiFloraGateway.Database;
 
 namespace MiFloraGateway.Devices
 {
@@ -28,17 +27,17 @@ namespace MiFloraGateway.Devices
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly CancellationToken cancellationToken;
 
-        public DetectDeviceCommand(ILogger<DetectDeviceCommand> logger, IDeviceLockManager deviceLockManager, 
-                                   DatabaseContext databaseContext, IDeviceCommunicationService deviceService, 
+        public DetectDeviceCommand(ILogger<DetectDeviceCommand> logger, IDeviceLockManager deviceLockManager,
+                                   DatabaseContext databaseContext, IDeviceCommunicationService deviceService,
                                    IOptions<JsonOptions> options,
-                                   ICancellationTokenAccessor cancellationTokenAccessor)
+                                   IJobCancellationToken cancellationToken)
         {
             this.logger = logger;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
             this.deviceLockManager = deviceLockManager;
             this.jsonSerializerOptions = options.Value.JsonSerializerOptions;
-            this.cancellationToken = cancellationTokenAccessor.Get();
+            this.cancellationToken = cancellationToken.ShutdownToken;
         }
 
         public async Task<int[]> ScanAsync()
@@ -51,7 +50,8 @@ namespace MiFloraGateway.Devices
             logger.LogDebug("Starting UDPClient");
             using (var client = new UdpClient())
             using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan))
-            using (token.Register(() => {
+            using (token.Register(() =>
+            {
                 logger.LogWarning("Timeout occured closing udpClient");
                 client.Close();
             }))
@@ -107,7 +107,7 @@ namespace MiFloraGateway.Devices
                     }
                     logEntry.Success("Scan successfully completed");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     logger.LogError(ex, "Failed to scan for new devices");
                     logEntry.Failure(ex.ToString());
@@ -121,7 +121,8 @@ namespace MiFloraGateway.Devices
         private async Task sendScanAsync(UdpClient client, int port, CancellationToken cancellationToken)
         {
             var assembyName = Assembly.GetExecutingAssembly().GetName();
-            var request = new DeviceDiscoveryRequest() { 
+            var request = new DeviceDiscoveryRequest()
+            {
                 Name = assembyName.Name,
                 Version = assembyName.Version
             };
@@ -163,7 +164,7 @@ namespace MiFloraGateway.Devices
                             IPAddress = endPoint.Address.ToString(),
                             Port = response.Port,
                             MACAddress = macAddress,
-                            Name = result.Name + " - "  + macAddress,
+                            Name = result.Name + " - " + macAddress,
                             Tags = new[] {
                                 new DeviceTag { Tag = PredefinedTags.Added, Value = DateTime.Now.ToString("g") },
                                 new DeviceTag { Tag = PredefinedTags.Source, Value = "ScanOrAutoConnect" }

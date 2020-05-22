@@ -1,13 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MiFloraGateway.Database;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Nito.AsyncEx;
 using Microsoft.Extensions.DependencyInjection;
+using MiFloraGateway.Database;
+using Nito.AsyncEx;
 
 namespace MiFloraGateway
 {
@@ -99,7 +96,7 @@ namespace MiFloraGateway
 
         public void Initialize()
         {
-            foreach(var setting in databaseContext.Settings)
+            foreach (var setting in databaseContext.Settings)
             {
                 var converter = this.typeConverters[GetTypeForSetting(setting.Key)];
                 storage.Add(setting.Key, converter.ConvertFromString(setting.Value));
@@ -128,7 +125,7 @@ namespace MiFloraGateway
             {
                 using (settingsManager.locker.Lock())
                 {
-                    foreach(var settings in settings)
+                    foreach (var settings in settings)
                     {
                         settingsManager.callbackBag[settings].Remove(callback);
                     }

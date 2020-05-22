@@ -1,10 +1,8 @@
-﻿using System.ComponentModel;
-
-namespace MiFloraGateway
+﻿namespace MiFloraGateway
 {
     public enum Settings
     {
-        [Setting(typeof(string) , "0 0 0 ? * *", true)]
+        [Setting(typeof(string), "0 0 0 ? * *", true)]
         UpdateBatteryAndVersionCron,
         [Setting(typeof(string), "0 0 * ? * *", true)]
         UpdateValuesCron,
