@@ -19,22 +19,22 @@ namespace CoreFlora.Controllers
 
     public class DeviceInformation : DeviceInfo
     {
-        public Runtime Runtime { get; set; }
-        public OperatingSystem OperatingSystem { get; set; }
+        public Runtime Runtime { get; set; } = null!;
+        public OperatingSystem OperatingSystem { get; set; } = null!;
         public bool Is64Bit { get; set; }
-        public IEnumerable<DeviceSupportFlags> Supports { get; set; }
+        public IEnumerable<DeviceSupportFlags> Supports { get; set; } = null!;
     }
 
     public class Runtime
     {
-        public Version Version { get; set; }
-        public string Description { get; set; }
+        public Version Version { get; set; } = null!;
+        public string Description { get; set; } = null!;
     }
 
     public class OperatingSystem
     {
         public bool Is64Bit { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public TimeSpan Uptime { get; set; }
     }
 
@@ -56,8 +56,8 @@ namespace CoreFlora.Controllers
             var assemblyName = Assembly.GetExecutingAssembly().GetName();
             return new DeviceInformation()
             {
-                Version = assemblyName.Version,
-                Name = assemblyName.Name,
+                Version = assemblyName.Version!,
+                Name = assemblyName.Name!,
                 MACAddress = NetworkInterface.GetAllNetworkInterfaces()
                                                   .Where(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)
                                                   .Select(x => x.GetPhysicalAddress()).FirstOrDefault(),

@@ -72,20 +72,24 @@ namespace CoreFlora
 
     public class HostingPort : IHostingPort
     {
-        private int? hostringPort;
+        private int? hostingPort;
         public int Port 
         { 
             get
             {
-                return hostringPort.Value;
+                if (!hostingPort.HasValue)
+                {
+                    throw new InvalidOperationException("Failed to get hosting!");
+                }
+                return hostingPort.Value;
             }
             set
             {
-                if (hostringPort.HasValue)
+                if (hostingPort.HasValue)
                 {
                     throw new Exception("Can only set value once");
                 }
-                hostringPort = value;
+                hostingPort = value;
             }
         }
     }

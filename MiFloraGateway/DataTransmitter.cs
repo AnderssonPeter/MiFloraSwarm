@@ -14,7 +14,7 @@ namespace MiFloraGateway
     {
         private readonly ISettingsManager settingsManager;
         private readonly AsyncLock asyncLock = new AsyncLock();
-        private IManagedMqttClient client;
+        private IManagedMqttClient? client;
         private bool hasSettingsChanged = true;
 
         public DataTransmitter(ISettingsManager settingsManager)
@@ -28,6 +28,10 @@ namespace MiFloraGateway
             {
                 client = await ConnectAsync(cancellationToken);
                 hasSettingsChanged = false;
+            }
+            if (client == null)
+            {
+                throw new InvalidOperationException("Client hasn't been initialized yet, can't send data!");
             }
             var data = new { light, temperature, moisture, conductivity, battery, version = version.ToString() };
             var content = Newtonsoft.Json.JsonConvert.SerializeObject(data);

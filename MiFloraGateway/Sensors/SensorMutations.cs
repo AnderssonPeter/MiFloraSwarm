@@ -15,10 +15,10 @@ namespace MiFloraGateway.Sensors
     {
         [Required]
         [RegularExpression(ValidationPatterns.MACAddressRegex)]
-        public string MACAddress { get; set; }
+        public string MACAddress { get; set; } = null!;
 
         [Required]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         public int? PlantId { get; set; }
     }

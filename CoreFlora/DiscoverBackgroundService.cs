@@ -24,8 +24,8 @@ namespace CoreFlora
         private readonly ILogger<DiscoverBackgroundService> logger;
         private readonly IHostingPort hostingPort;
         private readonly JsonSerializerOptions jsonSerializerOptions;
-        CancellationTokenSource cancellationTokenSource;
-        Task backgroundTask;
+        CancellationTokenSource? cancellationTokenSource;
+        Task? backgroundTask;
 
         public DiscoverBackgroundService(ILogger<DiscoverBackgroundService> logger, IHostingPort hostingPort, IOptions<JsonOptions> options)
         {
@@ -43,7 +43,10 @@ namespace CoreFlora
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
+            if (cancellationTokenSource == null)
+                throw new InvalidOperationException("Can't stop unless started first!");
             cancellationTokenSource.Cancel();
+            cancellationTokenSource = null;
             return Task.CompletedTask;
         }
 
@@ -67,16 +70,16 @@ namespace CoreFlora
                     try
                     {
                         var value = JsonSerializer.Deserialize<DeviceDiscoveryRequest>(receiveResult.Buffer, this.jsonSerializerOptions);
-                        logger.LogInformation($"Recived message from: {receiveResult.RemoteEndPoint}, name: {value.Name}, version: {value.Version}");
-                        //Responde!
-                        var assemblyName = Assembly.GetExecutingAssembly().GetName();
-                        var response = JsonSerializer.SerializeToUtf8Bytes(new DeviceDiscoveryResponse { Name = assemblyName.Name, Version = assemblyName.Version, Port = this.hostingPort.Port }, this.jsonSerializerOptions);
+                        logger.LogInformation($"Received message from: {receiveResult.RemoteEndPoint}, name: {value.Name}, version: {value.Version}");
+                        //Respond!
+                        var assemblyName = Assembly.GetExecutingAssembly().GetName();                        
+                        var response = JsonSerializer.SerializeToUtf8Bytes(new DeviceDiscoveryResponse { Name = assemblyName.Name!, Version = assemblyName.Version!, Port = this.hostingPort.Port }, this.jsonSerializerOptions);
                         await client.SendAsync(response, response.Length, new IPEndPoint(IPAddress.Broadcast, serverPort));
                         logger.LogInformation("Response sent");
                     }
                     catch(Exception ex)
                     {
-                        logger.LogError(ex, "Failed to responde to discovery request!");
+                        logger.LogError(ex, "Failed to respond to discovery request!");
                     }
                     
                 }

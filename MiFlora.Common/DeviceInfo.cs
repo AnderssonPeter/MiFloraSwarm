@@ -7,9 +7,9 @@ namespace MiFlora.Common
 {
     public class DeviceInfo
     {
-        public Version Version { get; set; }
-        public string Name { get; set; }
+        public Version Version { get; set; } = null!;
+        public string Name { get; set; } = null!;
         public TimeSpan Uptime { get; set; }
-        public PhysicalAddress MACAddress { get; set; }
+        public PhysicalAddress MACAddress { get; set; } = null!;
     }
 }

@@ -38,7 +38,7 @@ namespace MiFloraGateway
         public void ConfigureServices(IServiceCollection services)
         {
             //services.AddOData();
-            var logPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "log");
+            var logPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "log");
             services.AddElmah<XmlFileErrorLog>(options => options.LogPath = logPath);
             //services.AddElmah();
             services.AddHttpContextAccessor();

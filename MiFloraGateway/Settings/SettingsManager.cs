@@ -11,7 +11,7 @@ namespace MiFloraGateway
     public class SettingsManager : ISettingsManager, IRunOnStartup, IDisposable
     {
         AsyncLock locker = new AsyncLock();
-        Dictionary<Settings, object> storage = new Dictionary<Settings, object>();
+        Dictionary<Settings, object?> storage = new Dictionary<Settings, object?>();
         Dictionary<Settings, List<Action<Settings>>> callbackBag = new Dictionary<Settings, List<Action<Settings>>>();
         private readonly DatabaseContext databaseContext;
         private readonly Dictionary<Type, ITypeConverter> typeConverters = new Dictionary<Type, ITypeConverter>();
@@ -46,7 +46,7 @@ namespace MiFloraGateway
             {
                 if (storage.TryGetValue(setting, out var value))
                 {
-                    return (T)value;
+                    return (T)value!;
                 }
             }
 

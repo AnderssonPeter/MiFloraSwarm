@@ -3,13 +3,13 @@
     public class Plant
     {
         public int Id { get; set; }
-        public string LatinName { get; set; }
-        public string Alias { get; set; }
-        public string Display { get; set; }
-        public string ImageUrl { get; set; }
+        public string LatinName { get; set; } = null!;
+        public string Alias { get; set; } = null!;
+        public string Display { get; set; } = null!;
+        public string ImageUrl { get; set; } = null!;
 
-        public PlantBasic Basic { get; set; }
-        public PlantMaintenance Maintenance { get; set; }
-        public PlantParameters Parameters { get; set; }
+        public PlantBasic Basic { get; set; } = null!;
+        public PlantMaintenance Maintenance { get; set; } = null!;
+        public PlantParameters Parameters { get; set; } = null!;
     }
 }

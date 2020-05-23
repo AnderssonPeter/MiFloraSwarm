@@ -15,17 +15,17 @@ namespace MiFloraGateway.Devices
     {
         [Required]
         [RegularExpression(ValidationPatterns.MACAddressRegex)]
-        public string MACAddress { get; set; }
+        public string MACAddress { get; set; } = null!;
 
         [Required]
         [RegularExpression(ValidationPatterns.IPAddressRegex)]
-        public string IPAddress { get; set; }
+        public string IPAddress { get; set; } = null!;
 
         [Required]
         public int Port { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 
     public class EditDeviceParameters : AddDeviceParameters

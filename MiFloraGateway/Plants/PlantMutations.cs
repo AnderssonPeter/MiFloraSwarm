@@ -14,66 +14,66 @@ namespace MiFloraGateway.Plants
     public class AddPlantParameters
     {
         [Required]
-        public string LatinName { get; set; }
+        public string LatinName { get; set; } = null!;
 
         [Required]
-        public string Alias { get; set; }
+        public string Alias { get; set; } = null!;
 
         [Required]
-        public string Display { get; set; }
+        public string Display { get; set; } = null!;
 
         [Required]
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = null!;
 
-        public string Blooming { get; set; }
-        public string Category { get; set; }
-        public string Color { get; set; }
-        public string FloralLanguage { get; set; }
-        public string Origin { get; set; }
-        public string Production { get; set; }
+        public string? Blooming { get; set; }
+        public string? Category { get; set; }
+        public string? Color { get; set; }
+        public string? FloralLanguage { get; set; }
+        public string? Origin { get; set; }
+        public string? Production { get; set; }
 
-        public string Fertilization { get; set; }
-        public string Pruning { get; set; }
-        public string Size { get; set; }
-        public string Soil { get; set; }
-        public string Sunlight { get; set; }
-        public string Watering { get; set; }
+        public string? Fertilization { get; set; }
+        public string? Pruning { get; set; }
+        public string? Size { get; set; }
+        public string? Soil { get; set; }
+        public string? Sunlight { get; set; }
+        public string? Watering { get; set; }
 
         /// <summary>
         /// ?
         /// </summary>
-        public int MinEnvironmentHumidity { get; set; }
-        public int MaxEnvironmentHumidity { get; set; }
+        public int? MinEnvironmentHumidity { get; set; }
+        public int? MaxEnvironmentHumidity { get; set; }
 
         /// <summary>
         /// Lux
         /// </summary>
-        public int MinLightLux { get; set; }
-        public int MaxLightLux { get; set; }
+        public int? MinLightLux { get; set; }
+        public int? MaxLightLux { get; set; }
 
         /// <summary>
         /// ????
         /// </summary>
-        public int MinLightMmol { get; set; }
-        public int MaxLightMmol { get; set; }
+        public int? MinLightMmol { get; set; }
+        public int? MaxLightMmol { get; set; }
 
         /// <summary>
         /// µS/cm
         /// </summary>
-        public int MinSoilFertility { get; set; }
-        public int MaxSoilFertility { get; set; }
+        public int? MinSoilFertility { get; set; }
+        public int? MaxSoilFertility { get; set; }
 
         /// <summary>
         /// %
         /// </summary>
-        public int MinSoilHumidity { get; set; }
-        public int MaxSoilHumidity { get; set; }
+        public int? MinSoilHumidity { get; set; }
+        public int? MaxSoilHumidity { get; set; }
 
         /// <summary>
         /// C°
         /// </summary>
-        public int MinTemperature { get; set; }
-        public int MaxTemperature { get; set; }
+        public int? MinTemperature { get; set; }
+        public int? MaxTemperature { get; set; }
 
     }
 

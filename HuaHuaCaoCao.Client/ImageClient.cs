@@ -16,9 +16,9 @@ namespace HuaHuaCaoCao.Client
 
         public class Image
         {
-            public string ContentType { get; set; }
-            public Byte[] Content { get; set; }
-            public string ETag { get; set; }
+            public string? ContentType { get; set; }
+            public byte[]? Content { get; set; }
+            public string? ETag { get; set; }
         }
 
         public async Task<Image> DownloadImageAsync(string url)

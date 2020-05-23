@@ -26,7 +26,6 @@ namespace HuaHuaCaoCao.Example
     {
 
         static Dictionary<Settings, string> settings = new Dictionary<Settings, string>();
-        static IServiceProvider serviceProvider;
 
         static async Task Main(string[] args)
         {
@@ -52,7 +51,7 @@ namespace HuaHuaCaoCao.Example
             serviceCollection.AddHttpClient<PlantClient>();
 
 
-            serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             var plantClient = serviceProvider.GetService<PlantClient>();
             var imageClient = serviceProvider.GetService<ImageClient>();
             Console.WriteLine("Authenticating...");
@@ -102,8 +101,13 @@ namespace HuaHuaCaoCao.Example
             }
         }
 
-        static void OutputObject(string prefix, object item)
+        static void OutputObject(string prefix, object? item)
         {
+            if (item == null)
+            {
+                Console.WriteLine(prefix + ": [null]");
+                return;
+            }
             foreach (var property in item.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 var value = property.GetValue(item);
@@ -124,7 +128,7 @@ namespace HuaHuaCaoCao.Example
 
         static string GetSetting(Settings setting)
         {
-            var defaultValue = (string)Enum<Settings>.GetAttribute<DefaultValueAttribute>(setting)?.Value;
+            var defaultValue = (string?)Enum<Settings>.GetAttribute<DefaultValueAttribute>(setting)?.Value;
             if (string.IsNullOrEmpty(defaultValue))
             {
                 Console.Write($"{setting.ToString()}: ");

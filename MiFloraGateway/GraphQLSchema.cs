@@ -15,8 +15,8 @@ namespace MiFloraGateway
     public class DeviceError
     {
         public DateTime When { get; set; }
-        public string Message { get; set; }
-        public DeviceError(DateTime when, string message)
+        public string? Message { get; set; }
+        public DeviceError(DateTime when, string? message)
         {
             this.When = when;
             this.Message = message;
@@ -113,7 +113,7 @@ namespace MiFloraGateway
     public class DevicePagination : Pagination
     {
         [Description("collection of devices")]
-        public IQueryable<Device> Devices { get; set; }
+        public IQueryable<Device> Devices { get; set; } = null!;
     }
 
     public class Pagination

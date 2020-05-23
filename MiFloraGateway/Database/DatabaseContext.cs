@@ -12,19 +12,19 @@ namespace MiFloraGateway.Database
         {
         }
 
-        public DbSet<Device> Devices { get; set; }
-        public DbSet<DeviceTag> DevicesTags { get; set; }
-        public DbSet<LogEntry> LogEntries { get; set; }
-        public DbSet<Sensor> Sensors { get; set; }
-        public DbSet<DeviceSensorDistance> DeviceSensorDistances { get; set; }
-        public DbSet<SensorDataReading> SensorDataReadings { get; set; }
-        public DbSet<SensorBatteryAndVersionReading> SensorBatteryReadings { get; set; }
-        public DbSet<SensorTag> SensorTags { get; set; }
-        public DbSet<Plant> Plants { get; set; }
-        public DbSet<PlantBasic> PlantBasics { get; set; }
-        public DbSet<PlantMaintenance> PlantMaintenance { get; set; }
-        public DbSet<PlantParameters> PlantParameters { get; set; }
-        public DbSet<Setting> Settings { get; set; }
+        public DbSet<Device> Devices { get; set; } = null!;
+        public DbSet<DeviceTag> DevicesTags { get; set; } = null!;
+        public DbSet<LogEntry> LogEntries { get; set; } = null!;
+        public DbSet<Sensor> Sensors { get; set; } = null!;
+        public DbSet<DeviceSensorDistance> DeviceSensorDistances { get; set; } = null!;
+        public DbSet<SensorDataReading> SensorDataReadings { get; set; } = null!;
+        public DbSet<SensorBatteryAndVersionReading> SensorBatteryReadings { get; set; } = null!;
+        public DbSet<SensorTag> SensorTags { get; set; } = null!;
+        public DbSet<Plant> Plants { get; set; } = null!;
+        public DbSet<PlantBasic> PlantBasics { get; set; } = null!;
+        public DbSet<PlantMaintenance> PlantMaintenance { get; set; } = null!;
+        public DbSet<PlantParameters> PlantParameters { get; set; } = null!;
+        public DbSet<Setting> Settings { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -41,7 +41,7 @@ namespace MiFloraGateway.Database
 
             builder.Entity<Device>().HasMany(d => d.SensorDistances).WithOne(dsd => dsd.Device).HasForeignKey(dsd => dsd.DeviceId);
             builder.Entity<Device>().HasMany(d => d.Tags).WithOne(dt => dt.Device).HasForeignKey(dt => dt.DeviceId);
-            builder.Entity<Device>().HasMany(d => d.Logs).WithOne(le => le.Device).HasForeignKey(le => le.DeviceId);
+            builder.Entity<Device>().HasMany(d => d.Logs).WithOne(le => le.Device!).HasForeignKey(le => le.DeviceId);
 
             builder.Entity<DeviceTag>().HasKey(dt => new { dt.DeviceId, dt.Tag });
             builder.Entity<DeviceTag>().Property(dt => dt.Tag).HasMaxLength(32);
@@ -65,7 +65,7 @@ namespace MiFloraGateway.Database
             builder.Entity<Sensor>().HasMany(s => s.BatteryAndVersionReadings).WithOne(sbr => sbr.Sensor).HasForeignKey(sbr => sbr.SensorId);
             builder.Entity<Sensor>().HasMany(s => s.DataReadings).WithOne(sdr => sdr.Sensor).HasForeignKey(sdr => sdr.SensorId);
             builder.Entity<Sensor>().HasMany(s => s.Tags).WithOne(st => st.Sensor).HasForeignKey(st => st.SensorId);
-            builder.Entity<Sensor>().HasMany(s => s.Logs).WithOne(le => le.Sensor).HasForeignKey(le => le.SensorId);
+            builder.Entity<Sensor>().HasMany(s => s.Logs).WithOne(le => le.Sensor!).HasForeignKey(le => le.SensorId);
 
             builder.Entity<DeviceSensorDistance>().HasKey(dsd => new { dsd.DeviceId, dsd.SensorId, dsd.When });
 
@@ -113,7 +113,7 @@ namespace MiFloraGateway.Database
             base.OnModelCreating(builder);
         }
 
-        public LogEntryHandler AddLogEntry(LogEntryEvent @event, Device device = null, Sensor sensor = null, Plant plant = null, IdentityUser user = null)
+        public LogEntryHandler AddLogEntry(LogEntryEvent @event, Device? device = null, Sensor? sensor = null, Plant? plant = null, IdentityUser? user = null)
         {
             return new LogEntryHandler(this, @event, device: device, sensor: sensor, plant: plant, user: user);
         }
@@ -123,7 +123,7 @@ namespace MiFloraGateway.Database
     public class Setting
     {
         public Settings Key { get; set; }
-        public string Value { get; set; }
+        public string? Value { get; set; }
         public DateTime? LastChanged { get; set; }
     }
 
@@ -131,14 +131,14 @@ namespace MiFloraGateway.Database
     {
         private readonly DatabaseContext databaseContext;
         private readonly LogEntryEvent @event;
-        private readonly Device device;
-        private readonly Sensor sensor;
-        private readonly Plant plant;
-        private readonly IdentityUser user;
+        private readonly Device? device;
+        private readonly Sensor? sensor;
+        private readonly Plant? plant;
+        private readonly IdentityUser? user;
         private readonly DateTime when = DateTime.Now;
         private bool saved = false;
 
-        public LogEntryHandler(DatabaseContext databaseContext, LogEntryEvent @event, Device device = null, Sensor sensor = null, Plant plant = null, IdentityUser user = null)
+        public LogEntryHandler(DatabaseContext databaseContext, LogEntryEvent @event, Device? device = null, Sensor? sensor = null, Plant? plant = null, IdentityUser? user = null)
         {
             this.databaseContext = databaseContext;
             this.@event = @event;
@@ -148,13 +148,13 @@ namespace MiFloraGateway.Database
             this.user = user;
         }
 
-        public void Success(string message = null) => Save(LogEntryResult.Successful, message);
+        public void Success(string? message = null) => Save(LogEntryResult.Successful, message);
 
-        public void Failure(string message = null) => Save(LogEntryResult.Failed, message);
+        public void Failure(string message) => Save(LogEntryResult.Failed, message);
 
-        public void Failure(Exception ex, string message = null) => Save(LogEntryResult.Failed, ex.ToString() + Environment.NewLine + message);
+        public void Failure(Exception ex, string? message = null) => Save(LogEntryResult.Failed, ex.ToString() + Environment.NewLine + message);
 
-        private void Save(LogEntryResult result, string message)
+        private void Save(LogEntryResult result, string? message)
         {
             var logEntry = new LogEntry
             {
@@ -173,6 +173,10 @@ namespace MiFloraGateway.Database
 
         public void Dispose()
         {
+            if (!saved)
+            {
+                throw new InvalidOperationException("Failed to save LogEntry!");
+            }
         }
     }
 

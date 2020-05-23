@@ -18,7 +18,7 @@ namespace MiFloraGateway
             this.httpContext = httpContext;
         }
 
-        public bool Log(LogLevel logLevel, Func<string> messageFunc, Exception exception = null)
+        public bool Log(LogLevel logLevel, Func<string> messageFunc, Exception? exception = null)
         {
             if (messageFunc == null)
                 return true;

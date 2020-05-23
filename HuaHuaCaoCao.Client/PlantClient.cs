@@ -36,78 +36,78 @@ namespace HuaHuaCaoCao.Client
 
         public class AuthenticationRequestData
         {
-            public string Email { get; set; }
-            public string Password { get; set; }
+            public string? Email { get; set; }
+            public string? Password { get; set; }
         }
 
         public class GetDetailsRequestData
         {
-            public string PID { get; set; }
-            public string Lang { get; set; }
+            public string? PID { get; set; }
+            public string? Lang { get; set; }
         }
 
         public class SearchRequestData
         {
-            public string Alias { get; set; }
+            public string? Alias { get; set; }
             public int Count { get; set; }
-            public string Lang { get; set; }
+            public string? Lang { get; set; }
             public int Limit { get; set; }
         }
 
-        public class Response<TData>
+        public class Response<TData> where TData : class
         {
-            public TData Data { get; set; }
-            public string Description { get; set; }
-            public int Status { get; set; }
+            public TData Data { get; set; } = null!;
+            public string? Description { get; set; }
+            public int? Status { get; set; }
         }
 
         public class AuthenticationResponseData
         {
             public bool IsCreate { get; set; }
             public bool IsModifyNick { get; set; }
-            public string Migrate { get; set; }
-            public string ThirdNick { get; set; }
-            public string Token { get; set; }
+            public string? Migrate { get; set; }
+            public string? ThirdNick { get; set; }
+            public string? Token { get; set; }
         }
 
         public class RequestExtra
         {
-            public string AppChannel { get; set; }
-            public string Country { get; set; }
-            public string Lang { get; set; }
-            public string Model { get; set; }
-            public string Phone { get; set; }
-            public List<object> Position { get; set; }
-            public string Version { get; set; }
-            public int Zone { get; set; }
+            public string? AppChannel { get; set; }
+            public string? Country { get; set; }
+            public string? Lang { get; set; }
+            public string? Model { get; set; }
+            public string? Phone { get; set; }
+            public List<object?> Position { get; set; } = null!;
+            public string? Version { get; set; }
+            public int? Zone { get; set; }
         }
 
         public class PlantItem
         {
-            public string PID { get; set; }
-            public string Alias { get; set; }
-            public string DisplayPID { get; set; }
-            public string Image { get; set; }
+            public string PID { get; set; } = null!;
+            public string Alias { get; set; } = null!;
+            public string? DisplayPID { get; set; }
+            public string Image { get; set; } = null!;
         }
 
         public class Basic
         {
-            public string Blooming { get; set; }
-            public string Category { get; set; }
-            public string Color { get; set; }
-            public string FloralLanguage { get; set; }
-            public string Origin { get; set; }
-            public string Production { get; set; }
+            public string? Blooming { get; set; }
+            public string? Category { get; set; }
+            public string? Color { get; set; }
+            public string? FloralLanguage { get; set; }
+            public string? Origin { get; set; }
+            public string? Production { get; set; }
         }
 
         public class Maintenance
         {
-            public string Fertilization { get; set; }
-            public string Pruning { get; set; }
-            public string Size { get; set; }
-            public string Soil { get; set; }
-            public string Sunlight { get; set; }
-            public string Watering { get; set; }
+            public string? Fertilization { get; set; }
+            public string? Pruning { get; set; }
+            public string? Size { get; set; }
+            public string? Soil { get; set; }
+            public string? Sunlight { get; set; }
+            public string? Watering { get; set; }
         }
 
         public class Parameter
@@ -133,21 +133,21 @@ namespace HuaHuaCaoCao.Client
 
         public class GetDetailsReponse
         {
-            public Basic Basic { get; set; }
-            public string DisplayPID { get; set; }
-            public string Image { get; set; }
-            public Maintenance Maintenance { get; set; }
-            public Parameter Parameter { get; set; }
-            public string PID { get; set; }
+            public Basic? Basic { get; set; }
+            public string? DisplayPID { get; set; }
+            public string? Image { get; set; }
+            public Maintenance? Maintenance { get; set; }
+            public Parameter? Parameter { get; set; }
+            public string? PID { get; set; }
         }
 
-        public class Request<TData>
+        public class Request<TData> where TData : class
         {
-            public TData Data { get; set; }
-            public RequestExtra Extra { get; set; }
-            public string Method { get; set; }
-            public string Path { get; set; }
-            public string Service { get; set; }
+            public TData? Data { get; set; }
+            public RequestExtra? Extra { get; set; }
+            public string? Method { get; set; }
+            public string? Path { get; set; }
+            public string? Service { get; set; }
         }
 
         public async Task AuthenticateAsync()
@@ -197,7 +197,7 @@ namespace HuaHuaCaoCao.Client
 
 
 
-        private async Task<Response<TResponse>> PostAsync<TRequestData, TResponse>(TRequestData requestData, string service, string path)
+        private async Task<Response<TResponse>> PostAsync<TRequestData, TResponse>(TRequestData requestData, string service, string path) where TRequestData : class where TResponse : class
         {
             var request = new Request<TRequestData>()
             {
@@ -209,7 +209,7 @@ namespace HuaHuaCaoCao.Client
                     Lang = "en",
                     Model = "",
                     Phone = "samsung_SM-G955F_26",
-                    Position = new List<object>() { null, null },
+                    Position = new List<object?>() { null, null },
                     Version = "AS_3044_5.4.6",
                     Zone = 1
                 },
@@ -220,7 +220,16 @@ namespace HuaHuaCaoCao.Client
             var response = await client.PostAsync("", new StringContent(JsonConvert.SerializeObject(request, serializerSettings), Encoding.UTF8, "application/json"));
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Response<TResponse>>(content, serializerSettings);
+            var result = JsonConvert.DeserializeObject<Response<TResponse>>(content, serializerSettings);
+            if (result == null)
+            {
+                throw new InvalidOperationException("HuaHuaCaoCao endpoint returned null, this is not expected!");
+            }
+            if (result.Data == null)
+            {
+                throw new InvalidOperationException("HuaHuaCaoCao endpoint returned null, this is not expected!");
+            }
+            return result;
         }
     }
 }

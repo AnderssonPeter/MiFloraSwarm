@@ -6,8 +6,8 @@ namespace MiFlora.Common
 {
     public class SensorInfo
     {
-        public string Name { get; set; }
-        public string MACAddress { get; set; }
+        public string Name { get; set; } = null!;
+        public string MACAddress { get; set; } = null!;
         public int Rssi { get; set; }
     }
 }

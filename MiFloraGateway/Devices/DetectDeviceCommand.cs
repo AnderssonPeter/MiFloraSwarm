@@ -96,9 +96,10 @@ namespace MiFloraGateway.Devices
                             if (completedTask.Exception != null)
                             {
                                 logger.LogCritical(completedTask.Exception, "Handle client task crashed!");
+                                throw new Exception("Handle client task caused a exception", completedTask.Exception);
                             }
                             logger.LogInformation("Handle client task finished!");
-                            var device = ((Task<Device>)completedTask).Result;
+                            var device = ((Task<Device?>)completedTask).Result;
                             if (device != null)
                             {
                                 devices.Add(device);
@@ -123,8 +124,8 @@ namespace MiFloraGateway.Devices
             var assembyName = Assembly.GetExecutingAssembly().GetName();
             var request = new DeviceDiscoveryRequest()
             {
-                Name = assembyName.Name,
-                Version = assembyName.Version
+                Name = assembyName.Name!,
+                Version = assembyName.Version!
             };
             var buffer = JsonSerializer.SerializeToUtf8Bytes(request, this.jsonSerializerOptions);
             for (var i = 0; i < 5; i++)
@@ -138,7 +139,7 @@ namespace MiFloraGateway.Devices
             }
         }
 
-        private async Task<Device> handleClientAsync(IPEndPoint endPoint, byte[] buffer, CancellationToken cancellationToken)
+        private async Task<Device?> handleClientAsync(IPEndPoint endPoint, byte[] buffer, CancellationToken cancellationToken)
         {
             logger.LogTrace("HandleClientAsync");
             try
