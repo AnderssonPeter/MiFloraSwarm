@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -112,14 +113,12 @@ namespace MiFloraGateway
                  });
 
             services.AddHttpClient<IDeviceCommunicationService, DeviceCommunicationService>();
-            //services.AddTransient<IDeviceService, DeviceService>();
-            //services.AddSingleton<IDeviceDetector, DeviceDetector>();
             services.AddSingleton<IDeviceLockManager, DeviceLockManager>();
-            // In production, the React files will be served from this directory
             services.AddSingleton(GraphQLSchema.MakeSchema());
+
             services.AddSpaStaticFiles(configuration =>
             {
-                configuration.RootPath = "wwwroot";
+                configuration.RootPath = "ClientApp/dist";
             });
         }
 
@@ -151,21 +150,14 @@ namespace MiFloraGateway
                 endpoints.MapControllers();
             });
 
-            //app.UseSpaStaticFiles();
-
-            /*app.UseMvc(builder => {
-                builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count();
-                builder.MapODataServiceRoute("odata", "odata", ODataModelBuilder.GetEdmModel());
-            });*/
-
-            /*app.UseSpa(spa =>
+            app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "../FrontEnd/miflora-gateway";
+                spa.Options.SourcePath = "ClientApp";
                 if (env.IsDevelopment())
                 {
                     spa.UseAngularCliServer(npmScript: "start");
                 }
-            });*/
+            });
 
             app.UseElmah();
             app.UseHangfireDashboard();

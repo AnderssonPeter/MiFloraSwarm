@@ -25,7 +25,7 @@
                                 <button class="button is-primary" type="submit" [ngClass]="{ 'is-loading': loading }" [disabled]="!loginForm.valid || loading">Login</button>
                             </div>
                             <div class="control">
-                                <p class="has-text-danger">error</p>
+                                <p class="has-text-danger">{{error}}</p>
                             </div>
                         </div>
                     </form>

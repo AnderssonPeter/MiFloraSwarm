@@ -10,6 +10,8 @@ import { SensorsComponent } from './sensors/sensors.component';
 import { PlantsComponent } from './plants/plants.component';
 import { AboutComponent } from './about/about.component';
 import { TasksComponent } from './tasks/tasks.component';
+import { DeviceResolverService } from './devices/device-resolver.service';
+import { AuthenticationGuard } from './services/authentication.guard';
 
 const routes: Routes = [
   {
@@ -20,9 +22,15 @@ const routes: Routes = [
     }
   },
   { 
-    path: '', 
-    component: LayoutComponent, 
+    path: '',
+    component: LayoutComponent,
+    //canActivate: [AuthenticationGuard],
     children: [
+      {
+        path: '',
+        redirectTo: 'overview',
+        pathMatch: 'full'
+      },
       {
         path: 'overview',
         component: OverviewComponent,
@@ -34,6 +42,9 @@ const routes: Routes = [
       {
         path: 'devices',
         component: DevicesComponent,
+        resolve: {
+          devices: DeviceResolverService
+        },
         data: {
           label: 'Devices',
           icon: faMicrochip

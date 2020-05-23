@@ -27,11 +27,13 @@ export class AuthenticationService {
           localStorage.setItem('currentUser', JSON.stringify(user));
           this.currentUserSubject.next(user);
           return user;
-        }));
+        }))
+        .toPromise();
     }
     else {
       return throwError(new Error('Invalid username or password!'))
-        .pipe(delay(2000));
+        .pipe(delay(2000))
+        .toPromise();
     }
 
     /*return this.http.post<any>(`${config.apiUrl}/users/authenticate`, { username, password })

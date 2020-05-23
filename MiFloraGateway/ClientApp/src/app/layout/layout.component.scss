@@ -1,0 +1,168 @@
+@import "~src/_variables.scss";
+$expanded-menu-width: 12rem;
+$navbar-background-color: $black-ter;
+$navbar-highlight-color: $blue;
+$title-bar-background-color: $black-ter;
+$title-bar-text-color: $white-ter;
+$title-bar-height: 6rem;
+$title-bar-border-height: 0.2rem;
+$title-bar-border-color: $grey-dark;
+
+
+nav.navbar {
+    .navbar-item > .icon {
+        padding-left: $block-spacing / 2;
+        padding-right: $block-spacing;            
+        width: 2rem;
+    }
+}
+
+aside {
+    background-color: $navbar-background-color;
+    height: 100vh;
+    
+    .menu-item-label {
+        display: none;
+    }
+
+    nav {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+
+        .middle-items {
+            flex-grow: 1;
+        }
+        a {
+            padding-left: 0;
+            padding-right: 0;
+
+            color: $white-ter;
+            &.active {
+                color: $primary;
+            }
+        }
+    
+        .icon {
+            width: 3em;
+        }
+
+        
+        .logo {
+            height: $title-bar-height;
+            width: 3rem;
+            background-color: $title-bar-background-color;
+            display: flex;
+            align-items: flex-end;
+            border-bottom: $title-bar-border-height solid $title-bar-border-color;
+            img {
+                display: block;
+                padding-top: 10px;
+                margin: 0 auto;
+                max-height: $title-bar-height;
+            }
+        }
+
+        &.is-expanded {
+            min-width: $expanded-menu-width;
+
+            .logo {
+                width: $expanded-menu-width;
+            }
+
+            .icon {
+                padding-left: $block-spacing;
+                padding-right: $block-spacing;
+                width: 2rem;
+            }
+
+            .menu-item-label {
+                display: initial;
+            }
+        }
+
+        .logout, .toggle-size {
+            a {
+                color: $white;
+                background-color: $navbar-highlight-color;
+                &:hover {
+                    color: $navbar-highlight-color;
+                    background-color: $white;
+                }
+            }
+        }
+    }
+}
+
+main {
+    background-color: rgba(255, 255, 255, 0.8);
+    .section {
+        padding: 1.5rem;
+    }
+    .is-title-bar {
+        display: flex;
+        align-items: center;
+        height: $title-bar-height;
+        font-size: 2rem;
+        background-color: $title-bar-background-color;
+        color: $title-bar-text-color;
+        border-bottom: $title-bar-border-height solid $title-bar-border-color;
+        
+        .icon {
+            margin: 0 1.5rem;
+        }
+    }
+}
+
+.spinner-container {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+//Credit: https://github.com/tobiasahlin/SpinKit
+.spinner {
+    width: 80px;
+    height: 80px;
+
+    position: relative;
+    margin: 100px auto;
+    margin-top: calc(50vh - 80px);
+}
+  
+.double-bounce1, .double-bounce2 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: $blue;
+    opacity: 0.6;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    animation: sk-bounce 2.0s infinite ease-in-out;
+}
+  
+.double-bounce2 {
+    animation-delay: -1.0s;
+}
+  
+@-webkit-keyframes sk-bounce {
+    0%, 100% { -webkit-transform: scale(0.0) }
+    50% { -webkit-transform: scale(1.0) }
+}
+  
+@keyframes sk-bounce {
+    0%, 100% { 
+        transform: scale(0.0);
+        -webkit-transform: scale(0.0);
+    } 50% { 
+        transform: scale(1.0);
+        -webkit-transform: scale(1.0);
+    }
+}

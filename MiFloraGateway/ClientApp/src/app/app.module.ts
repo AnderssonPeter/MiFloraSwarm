@@ -14,6 +14,8 @@ import { SensorsComponent } from './sensors/sensors.component';
 import { PlantsComponent } from './plants/plants.component';
 import { AboutComponent } from './about/about.component';
 import { TasksComponent } from './tasks/tasks.component';
+import { ChartComponent } from './chart/chart.component';
+import { NgApexchartsModule } from "ng-apexcharts";
 
 @NgModule({
   declarations: [
@@ -26,14 +28,16 @@ import { TasksComponent } from './tasks/tasks.component';
     SensorsComponent,
     PlantsComponent,
     AboutComponent,
-    TasksComponent
+    TasksComponent,
+    ChartComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FontAwesomeModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgApexchartsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,0 +1,94 @@
+<section>
+    <div class="container is-fluid">
+        <div class="card">
+            <header class="card-header is-hidden-mobile">
+                <span href="#" class="card-header-icon">
+                    <span class="icon">
+                        <fa-icon [icon]="icons.icon"></fa-icon>
+                    </span>
+                </span>
+                <p class="card-header-title">
+                    Devices
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="field is-grouped">
+                    <div class="control search has-icons-left">
+                        <input class="input" type="text" placeholder="Search">
+                        <span class="icon is-small is-left">
+                            <fa-icon [icon]="icons.search"></fa-icon>
+                        </span>
+                    </div>
+                    <div class="control scan" class="is-hidden-tablet">
+                        <button class="button">
+                            <span class="icon is-small">
+                                <fa-icon [icon]="icons.scan"></fa-icon>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="control scan" class="is-hidden-mobile">
+                        <button class="button">
+                            <span class="icon is-small">
+                                <fa-icon [icon]="icons.scan"></fa-icon>
+                            </span>
+                            <span>Scan for new devices</span>
+                        </button>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="failure-rate">Failure rate</th>
+                            <th class="is-hidden-touch">MAC address</th>
+                            <th class="is-hidden-mobile">IP address</th>
+                            <th>Type</th>
+                            <th class="is-hidden-mobile">Version</th>
+                            <th>Tags</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="8">
+                                <nav class="pagination" role="navigation" aria-label="pagination">
+                                    <a class="pagination-previous" title="This is the first page" disabled>Previous</a>
+                                    <a class="pagination-next">Next page</a>
+                                    <ul class="pagination-list">
+                                    <li>
+                                        <a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a>
+                                    </li>
+                                    <li>
+                                        <a class="pagination-link" aria-label="Goto page 2">2</a>
+                                    </li>
+                                    <li>
+                                        <a class="pagination-link" aria-label="Goto page 3">3</a>
+                                    </li>
+                                    </ul>
+                                </nav>
+                            </th>
+                          </tr>
+                    </tfoot>
+                    <tbody>
+                        <tr *ngFor="let device of devices">
+                            <td>{{device.name}}</td>
+                            <td class="failure-rate" >
+                                <chart [dataLines]="device.failureRate"></chart>
+                            </td>
+                            <td class="is-hidden-touch">{{device.macAddress}}</td>
+                            <td class="is-hidden-mobile">{{device.ipAddress}}</td>
+                            <td>{{device.type}}</td>
+                            <td class="is-hidden-mobile">{{device.version}}</td>
+                            <td>
+                                <div class="tags">
+                                    <span class="tag" *ngFor="let tag of device.tags">
+                                        {{tag}}
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

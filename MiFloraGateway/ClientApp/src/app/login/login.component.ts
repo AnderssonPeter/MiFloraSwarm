@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { first } from 'rxjs/operators';
-import { AuthenticationService } from '../services/authentication-service.service';
+import { AuthenticationService } from '../services/authentication.service';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 
 
@@ -30,7 +29,7 @@ export class LoginComponent implements OnInit {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
 
-  onSubmit(): void {
+  async onSubmit() {
     console.log(this.loginForm);
     // stop here if form is invalid
     if (this.loginForm.invalid) {
@@ -40,18 +39,15 @@ export class LoginComponent implements OnInit {
     const password = this.loginForm.get('password').value;
 
     this.loading = true;
-    this.authenticationService
-        .login(username, password)
-        .pipe(first())
-        .subscribe(
-          data => {
-            this.router.navigate([this.returnUrl]);
-          },
-          error => {
-            this.error = error;
-            this.loading = false;
-          }
-        );
+    try {
+      await this.authenticationService.login(username, password);
+      this.router.navigate([this.returnUrl])
+    }
+    catch(ex) {
+      this.error = ex.message;
+    }
+    finally {
+      this.loading = false;
+    }
   }
-
 }

@@ -1,0 +1,35 @@
+@import "~src/_variables.scss";
+.container {
+    margin-top: $gap;
+}
+.card-header-title {
+    padding-left: 0;
+}
+table {
+    width: 100%;
+    td {
+        white-space: nowrap;
+    }
+}
+.control.search {
+    max-width: 18rem;
+}
+.failure-rate {
+
+    @include mobile {
+        min-width: 17vw;
+        max-width: 17vw;
+    }
+    @include tablet {
+        min-width: 15vw;
+        max-width: 15vw;
+    }
+    @include desktop {
+        min-width: 18vw;
+        max-width: 18vw;
+    }
+    @include widescreen {
+        min-width: 30vw;
+        max-width: 30vw;
+    }
+}
