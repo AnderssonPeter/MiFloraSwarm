@@ -1,53 +1,55 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map, delay } from 'rxjs/operators';
-import { from, throwError } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { ReplaySubject, Subject, Observable } from 'rxjs';
 import { User } from '../models/user';
+
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
 
-  private currentUserSubject: BehaviorSubject<User>;
-  public currentUser: Observable<User>;
-  
-  constructor() {
-    this.currentUserSubject = new BehaviorSubject<User>(null);
+  private readonly currentUserSubject: ReplaySubject<User | undefined>;
+  public readonly currentUser: Observable<User | undefined>;
+
+  constructor(private readonly httpClient: HttpClient) {
+    this.currentUserSubject = new ReplaySubject<User | undefined>(1);
     this.currentUser = this.currentUserSubject.asObservable();
-   }
 
-
-  login(username: string, password: string) {
-    if (username.toLowerCase() == 'admin' && password.toLowerCase() == 'qwerty') {
-      return from([new User(username, password)])
-        .pipe(delay(2000))
-        .pipe(map(user => {
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          this.currentUserSubject.next(user);
-          return user;
-        }))
-        .toPromise();
-    }
-    else {
-      return throwError(new Error('Invalid username or password!'))
-        .pipe(delay(2000))
-        .toPromise();
-    }
-
-    /*return this.http.post<any>(`${config.apiUrl}/users/authenticate`, { username, password })
-        .pipe(map(user => {
-            // store user details and jwt token in local storage to keep user logged in between page refreshes
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            this.currentUserSubject.next(user);
-            return user;
-        }));*/
+    httpClient.get<User>('authentication/getCurrentUser')
+              .toPromise()
+              .then((user) => this.currentUserSubject.next(user))
+              .catch((error) => {
+                console.log('Failed to get current user!', error);
+                this.currentUserSubject.next(undefined);
+              });
   }
 
-  logout() {
-      // remove user from local storage and set current user to null
-      localStorage.removeItem('currentUser');
-      this.currentUserSubject.next(null);
+  async login(username: string, password: string) {
+    try {
+      const result = await this.httpClient.post<User>('authentication/login', { username, password }, { observe: 'response' })
+                            .toPromise();
+      if (result.status === 200 && result.body) {
+        this.currentUserSubject.next(result.body);
+        this.currentUserSubject.subscribe((x) => console.log(x));
+      }
+      else {
+        throw new Error('Invalid username or password!');
+      }      
+    }
+    catch(ex) {
+      if (ex instanceof HttpErrorResponse) {
+        if (ex.status === 401) {
+          throw new Error('Invalid username or password!');
+        }
+      }
+      throw ex;
+    }
+  }
+
+  async logout() {
+    await this.httpClient.post('authentication/logout', null).toPromise();
+    this.currentUserSubject.next(undefined);
   }
 }

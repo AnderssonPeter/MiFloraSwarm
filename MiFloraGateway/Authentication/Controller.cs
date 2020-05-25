@@ -36,12 +36,12 @@ namespace MiFloraGateway.Authentication
         /// <returns></returns>
         [HttpPost]
         [Route("Login")]
-        public async Task<IActionResult> Login([FromBody]LoginModel loginModel)
+        public async Task<ActionResult<UserModel>> Login([FromBody]LoginModel loginModel)
         {
             var result = await signInManager.PasswordSignInAsync(loginModel.Username, loginModel.Password, true, false);
             if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
             {
-                return Ok();
+                return Ok(new UserModel { Username = User.Identity.Name ?? "N/A", IsAdmin = User.IsInRole(Roles.Admin) });
             }
             else
             {
@@ -84,6 +84,21 @@ namespace MiFloraGateway.Authentication
         public async Task<ActionResult<bool>> HasUser()
         {
             return Ok(await userManager.Users.AnyAsync());
+        }
+
+        /// <summary>
+        /// Check if any users have been created yet.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("GetCurrentUser")]
+        public ActionResult<UserModel> GetCurrentUser()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return Ok(new UserModel { Username = User.Identity.Name ?? "N/A", IsAdmin = User.IsInRole(Roles.Admin) });
+            }
+            return NotFound();
         }
 
         /// <summary>

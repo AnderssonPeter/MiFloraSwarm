@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using ElmahCore;
 using ElmahCore.Mvc;
 using Hangfire;
+using Hangfire.Annotations;
 using Hangfire.Console;
 using Hangfire.Console.Extensions;
+using Hangfire.Dashboard;
 using Hangfire.LiteDB;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MiFloraGateway.Authentication;
 using MiFloraGateway.Database;
 using MiFloraGateway.Devices;
 using MiFloraGateway.Sensors;
@@ -101,8 +105,8 @@ namespace MiFloraGateway
                 options.Secure = CookieSecurePolicy.SameAsRequest;
             });
 
-            services.AddAuthentication("CookieAuthentication")
-                 .AddCookie("CookieAuthentication", options =>
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
                  {
                      options.Cookie.Name = "MifloraAuth";
                      options.Cookie.HttpOnly = true;
@@ -112,13 +116,22 @@ namespace MiFloraGateway
                      options.ExpireTimeSpan = new TimeSpan(1, 0, 0);
                  });
 
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+            });
+
             services.AddHttpClient<IDeviceCommunicationService, DeviceCommunicationService>();
             services.AddSingleton<IDeviceLockManager, DeviceLockManager>();
             services.AddSingleton(GraphQLSchema.MakeSchema());
 
-            services.AddSpaStaticFiles(configuration =>
+            services.AddSpaStaticFiles(options =>
             {
-                configuration.RootPath = "ClientApp/dist";
+                options.RootPath = "ClientApp/dist";
             });
         }
 
@@ -160,12 +173,23 @@ namespace MiFloraGateway
             });
 
             app.UseElmah();
-            app.UseHangfireDashboard();
+            app.UseHangfireDashboard(options: new DashboardOptions {
+                Authorization = new[] { new HangfireAuthorizationFilter() }
+            });
 
             foreach (var runOnStartup in runOnStartups)
             {
                 runOnStartup.Initialize();
             }
+        }
+    }
+
+    public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
+    {
+        public bool Authorize([NotNull] DashboardContext context)
+        {
+            var httpContext = context.GetHttpContext();
+            return httpContext.User.IsInRole(Roles.Admin);
         }
     }
 }

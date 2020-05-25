@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { faCogs, faHdd, faEye, faMicrochip, faSeedling, faAngleDoubleRight, faAngleDoubleLeft, faMagic, faInfoCircle, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCogs, faHdd, faEye, faMicrochip, faSeedling, faAngleDoubleRight, faAngleDoubleLeft, faMagic, faInfoCircle, faSignOutAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { ActivatedRoute, Router, NavigationEnd, NavigationStart, NavigationCancel, NavigationError } from '@angular/router';
 
-export type RouteDate = { label, icon }
+export interface RouteData
+{
+  label: string,
+  icon?: IconDefinition
+}
 
 @Component({
   selector: 'app-layout',
@@ -25,7 +29,7 @@ export class LayoutComponent implements OnInit {
     { icon: faHdd, label: 'Tasks', route: '/tasks' },
     { icon: faInfoCircle, label: 'About', route: '/about' }
   ];
-  currentPage = { label: '', icon: null };
+  currentPage: RouteData = { label: '', icon: undefined };
   loading = false;
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {
     
@@ -37,7 +41,7 @@ export class LayoutComponent implements OnInit {
       else if (event instanceof NavigationEnd) {
         this.loading = false;
         console.log('end');
-        this.currentPage = activatedRoute.snapshot.children[0].data as RouteDate;
+        this.currentPage = activatedRoute.snapshot.children[0].data as RouteData;
       }
       else if (event instanceof NavigationCancel ||
                event instanceof NavigationError) {

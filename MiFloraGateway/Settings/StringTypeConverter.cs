@@ -6,14 +6,14 @@ namespace MiFloraGateway
     {
         public Type Type => typeof(string);
 
-        public object ConvertFromString(string value)
+        public object? ConvertFromString(string? value)
         {
             return value;
         }
 
-        public string ConvertToString(object value)
+        public string? ConvertToString(object? value)
         {
-            return (string)value;
+            return (string?)value;
         }
     }
 }

@@ -9,7 +9,7 @@ import { faSearch, faMicrochip, faSatelliteDish, faEdit, faTrash } from '@fortaw
   styleUrls: ['./devices.component.scss']
 })
 export class DevicesComponent implements OnInit {
-  public devices: Device[];
+  public devices?: Device[];
   icons = {
     search: faSearch,
     icon: faMicrochip,

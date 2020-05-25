@@ -21,10 +21,10 @@ const routes: Routes = [
       hidden: true
     }
   },
-  { 
+  {
     path: '',
     component: LayoutComponent,
-    //canActivate: [AuthenticationGuard],
+    canActivate: [AuthenticationGuard],
     children: [
       {
         path: '',
@@ -66,8 +66,8 @@ const routes: Routes = [
           icon: faSeedling
         }
       },
-      { 
-        path: 'settings', 
+      {
+        path: 'settings',
         component: SettingsComponent,
         data: {
           label: 'Settings',

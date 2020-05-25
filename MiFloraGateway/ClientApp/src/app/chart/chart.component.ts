@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DataLine } from '../devices/device';
-import { ChartType, ApexXAxis, ApexAxisChartSeries, ApexChart, ApexOptions, ApexFill, ApexStroke, ApexDataLabels, ApexGrid, ApexYAxis, ApexResponsive } from 'ng-apexcharts';
+import { ChartType, ApexXAxis, ApexAxisChartSeries, ApexChart, ApexOptions, 
+         ApexFill, ApexStroke, ApexDataLabels, ApexGrid, ApexYAxis, ApexResponsive } from 'ng-apexcharts';
 
 @Component({
   selector: 'chart',
@@ -12,7 +13,7 @@ export class ChartComponent implements OnInit, OnChanges {
   constructor() { }
 
   @Input()
-  dataLines: DataLine[] | DataLine;
+  dataLines?: DataLine[] | DataLine;
   
   xaxis: ApexXAxis = {
     type: 'datetime',
@@ -28,7 +29,7 @@ export class ChartComponent implements OnInit, OnChanges {
     min: 0
   }
 
-  series: ApexAxisChartSeries
+  series?: ApexAxisChartSeries
 
   chart: ApexChart = {
     type: 'area',
@@ -76,7 +77,7 @@ export class ChartComponent implements OnInit, OnChanges {
     if (this.dataLines instanceof DataLine) {
       this.dataLines = [this.dataLines];
     }
-    this.series = this.dataLines.map(dataLine => dataLine.toApexAxisChartSeries());
+    this.series = this.dataLines?.map(dataLine => dataLine.toApexAxisChartSeries());
     
   }
 }

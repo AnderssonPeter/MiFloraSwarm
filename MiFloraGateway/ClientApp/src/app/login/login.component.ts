@@ -12,11 +12,11 @@ import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 })
 export class LoginComponent implements OnInit {
   public loginForm: FormGroup;
-  returnUrl: string;
+  returnUrl?: string;
   loading = false;
   submitted = false;
-  error: string;
-  icons = { username: faUser, password: faLock }
+  error?: string;
+  icons = { username: faUser, password: faLock };
 
   constructor(formBuilder: FormBuilder, private router: Router, private route: ActivatedRoute, private authenticationService: AuthenticationService) { 
     this.loginForm = formBuilder.group({
@@ -35,8 +35,8 @@ export class LoginComponent implements OnInit {
     if (this.loginForm.invalid) {
       return;
     }
-    const username = this.loginForm.get('username').value;
-    const password = this.loginForm.get('password').value;
+    const username = this.loginForm.get('username')?.value;
+    const password = this.loginForm.get('password')?.value;
 
     this.loading = true;
     try {
