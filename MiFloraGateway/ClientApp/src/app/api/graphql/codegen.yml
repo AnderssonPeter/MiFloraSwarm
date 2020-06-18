@@ -1,0 +1,14 @@
+generates:
+  types.ts:
+    plugins:
+      - typescript
+      - typescript-type-graphql
+  sdk.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-apollo-angular
+config:
+  scalars:
+    DateTime: Date
+    JSON: "{ [key: string]: any }"

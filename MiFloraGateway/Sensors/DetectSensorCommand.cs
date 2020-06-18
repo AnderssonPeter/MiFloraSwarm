@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiFloraGateway.Database;
 using MiFloraGateway.Devices;
+using MiFloraGateway.Logs;
 using Polly;
 
 namespace MiFloraGateway.Sensors
@@ -18,16 +19,19 @@ namespace MiFloraGateway.Sensors
         private readonly ILogger<DetectSensorCommand> logger;
         private readonly IDeviceLockManager deviceLockManager;
         private readonly DatabaseContext databaseContext;
+        private readonly LogEntryHandler logEntryHandler;
         private readonly IDeviceCommunicationService deviceService;
         private readonly CancellationToken cancellationToken;
 
         public DetectSensorCommand(ILogger<DetectSensorCommand> logger, IDeviceCommunicationService deviceService,
                                    IDeviceLockManager deviceLockManager, DatabaseContext databaseContext,
+                                   LogEntryHandler logEntryHandler,
                                    IJobCancellationToken cancellationToken)
         {
             this.logger = logger;
             this.deviceLockManager = deviceLockManager;
             this.databaseContext = databaseContext;
+            this.logEntryHandler = logEntryHandler;
             this.deviceService = deviceService;
             this.cancellationToken = cancellationToken.ShutdownToken;
         }
@@ -45,7 +49,7 @@ namespace MiFloraGateway.Sensors
             {
                 var scanTasks = devices.Select(async device =>
                 {
-                    using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan, device: device))
+                    await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Scan, device: device))
                     {
                         var result = await policy.ExecuteAndCaptureAsync(() => deviceService.ScanAsync(device, token));
                         if (result.Outcome == OutcomeType.Successful)

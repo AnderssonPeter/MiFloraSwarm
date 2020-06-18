@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using EntityGraphQL;
 using EntityGraphQL.Schema;
 using Microsoft.AspNetCore.Authorization;
@@ -8,16 +9,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MiFloraGateway.Database;
 
-namespace MiFloraGateway.Controllers
+namespace MiFloraGateway.GraphQL
 {
-    [Route("api/[controller]")]
-    public class QueryController : Controller
+    [Route("GraphQL")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public class Controller : Microsoft.AspNetCore.Mvc.Controller
     {
         private readonly DatabaseContext dbContext;
-        private readonly ILogger<QueryController> logger;
+        private readonly ILogger<Controller> logger;
         private readonly SchemaProvider<DatabaseContext> schemaProvider;
 
-        public QueryController(DatabaseContext dbContext, ILogger<QueryController> logger, SchemaProvider<DatabaseContext> schemaProvider)
+        public Controller(DatabaseContext dbContext, ILogger<Controller> logger, SchemaProvider<DatabaseContext> schemaProvider)
         {
             this.dbContext = dbContext;
             this.logger = logger;
@@ -26,11 +28,11 @@ namespace MiFloraGateway.Controllers
 
         [HttpPost]
         [Authorize]
-        public object Post([FromBody]QueryRequest query)
+        public async Task<object> Post([FromBody]QueryRequest query)
         {
             try
             {
-                var results = schemaProvider.ExecuteQuery(query, dbContext, HttpContext.RequestServices, User.Identities.FirstOrDefault());
+                var results = await schemaProvider.ExecuteQueryAsync(query, dbContext, HttpContext.RequestServices, User.Identities.FirstOrDefault());
                 // gql compile errors show up in results.Errors
                 if (results.Errors.Any())
                 {

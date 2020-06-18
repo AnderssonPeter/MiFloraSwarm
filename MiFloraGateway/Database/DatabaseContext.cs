@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MiFloraGateway.Database
 {
@@ -112,12 +114,6 @@ namespace MiFloraGateway.Database
 
             base.OnModelCreating(builder);
         }
-
-        public LogEntryHandler AddLogEntry(LogEntryEvent @event, Device? device = null, Sensor? sensor = null, Plant? plant = null, IdentityUser? user = null)
-        {
-            return new LogEntryHandler(this, @event, device: device, sensor: sensor, plant: plant, user: user);
-        }
-
     }
 
     public class Setting
@@ -125,59 +121,6 @@ namespace MiFloraGateway.Database
         public Settings Key { get; set; }
         public string? Value { get; set; }
         public DateTime? LastChanged { get; set; }
-    }
-
-    public class LogEntryHandler : IDisposable
-    {
-        private readonly DatabaseContext databaseContext;
-        private readonly LogEntryEvent @event;
-        private readonly Device? device;
-        private readonly Sensor? sensor;
-        private readonly Plant? plant;
-        private readonly IdentityUser? user;
-        private readonly DateTime when = DateTime.Now;
-        private bool saved = false;
-
-        public LogEntryHandler(DatabaseContext databaseContext, LogEntryEvent @event, Device? device = null, Sensor? sensor = null, Plant? plant = null, IdentityUser? user = null)
-        {
-            this.databaseContext = databaseContext;
-            this.@event = @event;
-            this.device = device;
-            this.sensor = sensor;
-            this.plant = plant;
-            this.user = user;
-        }
-
-        public void Success(string? message = null) => Save(LogEntryResult.Successful, message);
-
-        public void Failure(string message) => Save(LogEntryResult.Failed, message);
-
-        public void Failure(Exception ex, string? message = null) => Save(LogEntryResult.Failed, ex.ToString() + Environment.NewLine + message);
-
-        private void Save(LogEntryResult result, string? message)
-        {
-            var logEntry = new LogEntry
-            {
-                Device = device,
-                Sensor = sensor,
-                Plant = plant,
-                User = user,
-                When = when,
-                Duration = DateTime.Now.Subtract(when),
-                Event = @event,
-                Result = result,
-                Message = message.Truncate(200)
-            };
-            databaseContext.LogEntries.Add(logEntry);
-        }
-
-        public void Dispose()
-        {
-            if (!saved)
-            {
-                throw new InvalidOperationException("Failed to save LogEntry!");
-            }
-        }
     }
 
 }

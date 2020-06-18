@@ -1,8 +1,8 @@
 ﻿namespace MiFloraGateway.Database
 {
-    public class Plant
+
+    public class Plant : EntityBase
     {
-        public int Id { get; set; }
         public string LatinName { get; set; } = null!;
         public string Alias { get; set; } = null!;
         public string Display { get; set; } = null!;

@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiFlora.Common;
 using MiFloraGateway.Database;
+using MiFloraGateway.Logs;
 
 namespace MiFloraGateway.Devices
 {
@@ -23,18 +24,20 @@ namespace MiFloraGateway.Devices
         private readonly ILogger<DetectDeviceCommand> logger;
         private readonly DatabaseContext databaseContext;
         private readonly IDeviceCommunicationService deviceService;
+        private readonly LogEntryHandler logEntryHandler;
         private readonly IDeviceLockManager deviceLockManager;
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly CancellationToken cancellationToken;
 
         public DetectDeviceCommand(ILogger<DetectDeviceCommand> logger, IDeviceLockManager deviceLockManager,
                                    DatabaseContext databaseContext, IDeviceCommunicationService deviceService,
-                                   IOptions<JsonOptions> options,
+                                   IOptions<JsonOptions> options, LogEntryHandler logEntryHandler,
                                    IJobCancellationToken cancellationToken)
         {
             this.logger = logger;
             this.databaseContext = databaseContext;
             this.deviceService = deviceService;
+            this.logEntryHandler = logEntryHandler;
             this.deviceLockManager = deviceLockManager;
             this.jsonSerializerOptions = options.Value.JsonSerializerOptions;
             this.cancellationToken = cancellationToken.ShutdownToken;
@@ -49,10 +52,10 @@ namespace MiFloraGateway.Devices
             const int clientPort = 16556;
             logger.LogDebug("Starting UDPClient");
             using (var client = new UdpClient())
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Scan))
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Scan))
             using (token.Register(() =>
             {
-                logger.LogWarning("Timeout occured closing udpClient");
+                logger.LogWarning("Timeout occurred closing udpClient");
                 client.Close();
             }))
             {
@@ -63,7 +66,7 @@ namespace MiFloraGateway.Devices
                     client.Client.Bind(new IPEndPoint(IPAddress.Any, serverPort));
                     logger.LogDebug("UDPClient started");
                     var listeningTask = client.ReceiveAsync();
-                    var sendTask = sendScanAsync(client, clientPort, token);
+                    var sendTask = SendScanAsync(client, clientPort, token);
                     var tasks = new List<Task> { listeningTask, sendTask };
                     while (!token.IsCancellationRequested)
                     {
@@ -78,7 +81,7 @@ namespace MiFloraGateway.Devices
                                 throw new Exception("Listen task caused a exception", completedTask.Exception);
                             }
                             logger.LogInformation($"Received response from {listeningTask.Result.RemoteEndPoint}");
-                            tasks.Add(handleClientAsync(listeningTask.Result.RemoteEndPoint, listeningTask.Result.Buffer, token));
+                            tasks.Add(HandleClientAsync(listeningTask.Result.RemoteEndPoint, listeningTask.Result.Buffer, token));
                             listeningTask = client.ReceiveAsync();
                             tasks.Add(listeningTask);
                         }
@@ -119,7 +122,7 @@ namespace MiFloraGateway.Devices
             return devices.Select(x => x.Id).ToArray();
         }
 
-        private async Task sendScanAsync(UdpClient client, int port, CancellationToken cancellationToken)
+        private async Task SendScanAsync(UdpClient client, int port, CancellationToken cancellationToken)
         {
             var assembyName = Assembly.GetExecutingAssembly().GetName();
             var request = new DeviceDiscoveryRequest()
@@ -139,12 +142,12 @@ namespace MiFloraGateway.Devices
             }
         }
 
-        private async Task<Device?> handleClientAsync(IPEndPoint endPoint, byte[] buffer, CancellationToken cancellationToken)
+        private async Task<Device?> HandleClientAsync(IPEndPoint endPoint, byte[] buffer, CancellationToken cancellationToken)
         {
             logger.LogTrace("HandleClientAsync");
             try
             {
-                logger.LogInformation($"Deserializing response");
+                logger.LogInformation("Deserializing response");
                 var response = JsonSerializer.Deserialize<DeviceDiscoveryResponse>(buffer, this.jsonSerializerOptions);
                 var restEndpoint = new IPEndPoint(endPoint.Address, response.Port);
                 logger.LogInformation($"Adding device {endPoint}");

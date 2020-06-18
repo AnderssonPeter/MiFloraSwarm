@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { ReplaySubject, Subject, Observable } from 'rxjs';
-import { User } from '../models/user';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ReplaySubject, Observable } from 'rxjs';
+import { AuthenticationClient, UserModel, ApiException } from '../api/rest/RestClient';
 
 
 
@@ -10,36 +10,29 @@ import { User } from '../models/user';
 })
 export class AuthenticationService {
 
-  private readonly currentUserSubject: ReplaySubject<User | undefined>;
-  public readonly currentUser: Observable<User | undefined>;
+  private readonly currentUserSubject = new ReplaySubject<UserModel | undefined>(1);
+  public readonly currentUser = this.currentUserSubject.asObservable();
 
-  constructor(private readonly httpClient: HttpClient) {
-    this.currentUserSubject = new ReplaySubject<User | undefined>(1);
+  constructor(private readonly authenticationClient: AuthenticationClient) {
+    this.currentUserSubject = new ReplaySubject<UserModel | undefined>(1);
     this.currentUser = this.currentUserSubject.asObservable();
 
-    httpClient.get<User>('authentication/getCurrentUser')
-              .toPromise()
-              .then((user) => this.currentUserSubject.next(user))
-              .catch((error) => {
-                console.log('Failed to get current user!', error);
-                this.currentUserSubject.next(undefined);
-              });
+    authenticationClient.getCurrentUser()
+                        .toPromise()
+                        .then(user => this.currentUserSubject.next(user))
+                        .catch((error) => {
+                            console.log('Failed to get current user!', error);
+                            this.currentUserSubject.next(undefined);
+                        });
   }
 
   async login(username: string, password: string) {
     try {
-      const result = await this.httpClient.post<User>('authentication/login', { username, password }, { observe: 'response' })
-                            .toPromise();
-      if (result.status === 200 && result.body) {
-        this.currentUserSubject.next(result.body);
-        this.currentUserSubject.subscribe((x) => console.log(x));
-      }
-      else {
-        throw new Error('Invalid username or password!');
-      }      
+      const result = await this.authenticationClient.login(username, password).toPromise();
+      this.currentUserSubject.next(result);
     }
     catch(ex) {
-      if (ex instanceof HttpErrorResponse) {
+      if (ex instanceof HttpErrorResponse || ex instanceof ApiException) {
         if (ex.status === 401) {
           throw new Error('Invalid username or password!');
         }
@@ -49,7 +42,7 @@ export class AuthenticationService {
   }
 
   async logout() {
-    await this.httpClient.post('authentication/logout', null).toPromise();
+    await this.authenticationClient.logout().toPromise();
     this.currentUserSubject.next(undefined);
   }
 }

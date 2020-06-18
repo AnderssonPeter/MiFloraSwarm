@@ -15,7 +15,7 @@ namespace MiFloraGateway.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.1")
+                .HasAnnotation("ProductVersion", "3.1.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -40,14 +40,21 @@ namespace MiFloraGateway.Migrations
                         .HasMaxLength(17);
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Port")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IPAddress")
+                        .IsUnique();
+
                     b.HasIndex("MACAddress")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
                         .IsUnique();
 
                     b.ToTable("Devices");
@@ -115,6 +122,9 @@ namespace MiFloraGateway.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasMaxLength(200);
 
+                    b.Property<int?>("PlantId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Result")
                         .IsRequired()
                         .HasColumnType("nvarchar(10)")
@@ -123,6 +133,9 @@ namespace MiFloraGateway.Migrations
                     b.Property<int?>("SensorId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("When")
                         .HasColumnType("datetime2");
 
@@ -130,7 +143,11 @@ namespace MiFloraGateway.Migrations
 
                     b.HasIndex("DeviceId");
 
+                    b.HasIndex("PlantId");
+
                     b.HasIndex("SensorId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("LogEntries");
                 });
@@ -145,22 +162,25 @@ namespace MiFloraGateway.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Alias")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Display")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LatinName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LatinName")
-                        .IsUnique()
-                        .HasFilter("[LatinName] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("Plants");
                 });
@@ -247,6 +267,7 @@ namespace MiFloraGateway.Migrations
                         .HasMaxLength(17);
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PlantId")
@@ -568,9 +589,17 @@ namespace MiFloraGateway.Migrations
                         .WithMany("Logs")
                         .HasForeignKey("DeviceId");
 
+                    b.HasOne("MiFloraGateway.Database.Plant", "Plant")
+                        .WithMany()
+                        .HasForeignKey("PlantId");
+
                     b.HasOne("MiFloraGateway.Database.Sensor", "Sensor")
                         .WithMany("Logs")
                         .HasForeignKey("SensorId");
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("MiFloraGateway.Database.PlantBasic", b =>
@@ -604,10 +633,10 @@ namespace MiFloraGateway.Migrations
                             b1.Property<int>("PlantParametersPlantId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Max")
+                            b1.Property<int?>("Max")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Min")
+                            b1.Property<int?>("Min")
                                 .HasColumnType("int");
 
                             b1.HasKey("PlantParametersPlantId");
@@ -623,10 +652,10 @@ namespace MiFloraGateway.Migrations
                             b1.Property<int>("PlantParametersPlantId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Max")
+                            b1.Property<int?>("Max")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Min")
+                            b1.Property<int?>("Min")
                                 .HasColumnType("int");
 
                             b1.HasKey("PlantParametersPlantId");
@@ -642,10 +671,10 @@ namespace MiFloraGateway.Migrations
                             b1.Property<int>("PlantParametersPlantId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Max")
+                            b1.Property<int?>("Max")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Min")
+                            b1.Property<int?>("Min")
                                 .HasColumnType("int");
 
                             b1.HasKey("PlantParametersPlantId");
@@ -661,10 +690,10 @@ namespace MiFloraGateway.Migrations
                             b1.Property<int>("PlantParametersPlantId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Max")
+                            b1.Property<int?>("Max")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Min")
+                            b1.Property<int?>("Min")
                                 .HasColumnType("int");
 
                             b1.HasKey("PlantParametersPlantId");
@@ -680,10 +709,10 @@ namespace MiFloraGateway.Migrations
                             b1.Property<int>("PlantParametersPlantId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Max")
+                            b1.Property<int?>("Max")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Min")
+                            b1.Property<int?>("Min")
                                 .HasColumnType("int");
 
                             b1.HasKey("PlantParametersPlantId");
@@ -699,10 +728,10 @@ namespace MiFloraGateway.Migrations
                             b1.Property<int>("PlantParametersPlantId")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Max")
+                            b1.Property<int?>("Max")
                                 .HasColumnType("int");
 
-                            b1.Property<int>("Min")
+                            b1.Property<int?>("Min")
                                 .HasColumnType("int");
 
                             b1.HasKey("PlantParametersPlantId");

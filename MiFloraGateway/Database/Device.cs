@@ -2,9 +2,8 @@
 
 namespace MiFloraGateway.Database
 {
-    public class Device
+    public class Device : EntityBase
     {
-        public int Id { get; set; }
         public string MACAddress { get; set; } = null!;
         public string IPAddress { get; set; } = null!;
         public int Port { get; set; }

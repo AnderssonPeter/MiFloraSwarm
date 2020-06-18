@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using EntityGraphQL.Authorization;
 using EntityGraphQL.Schema;
+using Hangfire.Console.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MiFloraGateway.Authentication;
 using MiFloraGateway.Database;
+using MiFloraGateway.Logs;
+using MiFloraGateway.Sensors;
 
 namespace MiFloraGateway.Devices
 {
+    [MutationArguments]
     public class AddDeviceParameters
     {
         [Required]
@@ -34,6 +40,7 @@ namespace MiFloraGateway.Devices
         public int Id { get; set; }
     }
 
+    [MutationArguments]
     public class DeleteDeviceParameters
     {
         [Required]
@@ -44,37 +51,39 @@ namespace MiFloraGateway.Devices
     {
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Expression<Func<DatabaseContext, Device>> AddDevice(DatabaseContext databaseContext, AddDeviceParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Expression<Func<DatabaseContext, Device>>> AddDevice(DatabaseContext databaseContext, AddDeviceParameters model, LogEntryHandler logEntryHandler)
         {
-            try
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Add))
             {
-                //get current user, try to convert this into a async method so we can get the user!
-                var device = new Device()
+                try
                 {
-                    MACAddress = model.MACAddress,
-                    IPAddress = model.IPAddress,
-                    Port = model.Port,
-                    Name = model.Name
-                };
-                databaseContext.Devices.Add(device);
-                databaseContext.SaveChanges();
-                databaseContext.AddLogEntry(LogEntryEvent.Add, device: device).Success();
-                return ctx => ctx.Devices.Single(x => x.Id == device.Id);
-            }
-            catch (Exception ex)
-            {
-                databaseContext.AddLogEntry(LogEntryEvent.Add).Failure(ex, "Failed to add device!");
-                throw ex;
+                    var device = new Device()
+                    {
+                        MACAddress = model.MACAddress,
+                        IPAddress = model.IPAddress,
+                        Port = model.Port,
+                        Name = model.Name
+                    };
+                    databaseContext.Devices.Add(device);
+                    await databaseContext.SaveChangesAsync();
+                    logEntry.Attach(device);
+                    logEntry.Success();
+                    return ctx => ctx.Devices.GetRequiredById(device.Id);
+                }
+                catch (Exception ex)
+                {
+                    logEntry.Failure(ex, "Failed to add device!");
+                    throw;
+                }
             }
         }
 
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Expression<Func<DatabaseContext, Device>> EditDevice(DatabaseContext databaseContext, EditDeviceParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Expression<Func<DatabaseContext, Device>>> EditDevice(DatabaseContext databaseContext, EditDeviceParameters model, LogEntryHandler logEntryHandler)
         {
-            //get current user, try to convert this into a async method so we can get the user!
-            var device = databaseContext.Devices.Single(x => x.Id == model.Id);
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Edit, device: device))
+            var device = await databaseContext.Devices.GetRequiredByIdAsync(model.Id);
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Edit, device: device))
             {
                 try
                 {
@@ -82,47 +91,46 @@ namespace MiFloraGateway.Devices
                     device.IPAddress = model.IPAddress;
                     device.Port = model.Port;
                     device.Name = model.Name;
-                    databaseContext.SaveChanges();
+                    await databaseContext.SaveChangesAsync();
                     logEntry.Success();
                     return ctx => ctx.Devices.Single(x => x.Id == device.Id);
                 }
                 catch (Exception ex)
                 {
                     logEntry.Failure(ex, "Failed to edit device!");
-                    throw ex;
+                    throw;
                 }
             }
         }
 
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Empty DeleteDevice(DatabaseContext databaseContext, DeleteDeviceParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Device> DeleteDevice(DatabaseContext databaseContext, DeleteDeviceParameters model, LogEntryHandler logEntryHandler)
         {
-            //get current user, try to convert this into a async method so we can get the user!
-            var device = databaseContext.Devices.Single(x => x.Id == model.Id);
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Delete, device: device))
+            var device = await databaseContext.Devices.GetRequiredByIdAsync(model.Id);
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Delete, device: device))
             {
                 try
                 {
                     databaseContext.Devices.Remove(device);
-                    databaseContext.SaveChanges();
+                    await databaseContext.SaveChangesAsync();
                     logEntry.Success();
-                    return Empty.Instance;
+                    return device;
                 }
                 catch (Exception ex)
                 {
                     logEntry.Failure(ex, "Failed to delete device!");
-                    throw ex;
+                    throw;
                 }
             }
         }
 
-        /* Wait for EntityGraphQL to support async mutations: https://github.com/lukemurray/EntityGraphQL/issues/50[GraphQLMutation]
+        [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public async Task<Expression<Func<DatabaseContext, IQueryable<Device>>>> Scan(DatabaseContext databaseContext, Func<Task<IdentityUser>> getUser, IJobManager jobManager)
+        public async Task<Expression<Func<DatabaseContext, IQueryable<Device>>>> ScanForDevices(IJobManager jobManager)
         {
             var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectDeviceCommand>(ddc => ddc.ScanAsync()).ConfigureAwait(false);
-            return ctx => ctx.Devices.Where(x => ids.Contains(x.Id));
-        }*/
+            return ctx => ctx.Devices.GetByIds(ids);
+        }
     }
 }

@@ -3,7 +3,7 @@
         <div class="container">
             <div class="columns is-centered">
                 <div class="column is-6-tablet is-5-desktop is-4-widescreen">
-                    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="box">
+                    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="box">
                         <div class="field">
                             <div class="control has-icons-left has-icons-right">
                                 <input class="input" type="text" placeholder="Username" formControlName="username">
@@ -22,7 +22,7 @@
                         </div>
                         <div class="field is-grouped">
                             <div class="control">
-                                <button class="button is-primary" type="submit" [ngClass]="{ 'is-loading': loading }" [disabled]="!loginForm.valid || loading">Login</button>
+                                <button class="button is-primary" type="submit" [ngClass]="{ 'is-loading': loading }" [disabled]="!form.valid || loading">Login</button>
                             </div>
                             <div class="control">
                                 <p class="has-text-danger">{{error}}</p>

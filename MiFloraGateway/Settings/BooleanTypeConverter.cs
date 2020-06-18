@@ -15,7 +15,7 @@ namespace MiFloraGateway
 
         public string? ConvertToString(object? value)
         {
-            return value?.ToString()!;
+            return value?.ToString();
         }
     }
 }

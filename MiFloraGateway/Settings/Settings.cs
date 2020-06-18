@@ -2,24 +2,21 @@
 {
     public enum Settings
     {
-        [Setting(typeof(string), "0 0 0 ? * *", true)]
+        [StringSetting(true, "0 0 0 ? * *", true, StringSettingType.Cron)]
         UpdateBatteryAndVersionCron,
-        [Setting(typeof(string), "0 0 * ? * *", true)]
+        [StringSetting(true, "0 0 * ? * *", true, StringSettingType.Cron)]
         UpdateValuesCron,
-        [Setting(typeof(string), "MiFloraGateway", true)]
+        [StringSetting(true, "MiFloraGateway", true)]
         MQTTClientId,
-        [Setting(typeof(string), "", true)]
+        [StringSetting(true, "", true, StringSettingType.IPAddressOrHostname)]
         MQTTServerAddress,
-        [Setting(typeof(string), "", true)]
+        [Setting(typeof(int), true, 1883, true)]
+        MQTTPort,
+        [StringSetting(false, "", true)]
         MQTTUsername,
-        [Setting(typeof(string), "", false)]
+        [StringSetting(false, "", false, StringSettingType.Password)]
         MQTTPassword,
-        [Setting(typeof(bool), false, true)]
-        MQTTUseTLS,
-        [Setting(typeof(string), "admin", true)]
-        Username,
-        [Setting(typeof(string), "", false)]
-        Password
-
+        [Setting(typeof(bool), true, false, true)]
+        MQTTUseTLS
     }
 }

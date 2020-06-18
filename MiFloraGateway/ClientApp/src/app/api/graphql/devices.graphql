@@ -1,0 +1,20 @@
+query($page: Int!, $pageSize: Int!, $search: String) {
+  devicePager(page: $page, pageSize: $pageSize, search: $search) {
+    total,
+    pageCount,
+    devices {
+      id,
+      name,
+      ipAddress,
+      macAddress,
+      failuresLast24Hours {
+        when,
+        message
+      },
+      tags {
+        tag,
+        value
+      }
+    }
+  }
+}

@@ -25,6 +25,7 @@ using Microsoft.Extensions.Hosting;
 using MiFloraGateway.Authentication;
 using MiFloraGateway.Database;
 using MiFloraGateway.Devices;
+using MiFloraGateway.Logs;
 using MiFloraGateway.Sensors;
 
 namespace MiFloraGateway
@@ -41,6 +42,9 @@ namespace MiFloraGateway
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+#if DEBUG
+            services.AddOpenApiDocument(document => document.DocumentName = "v1");
+#endif
             //services.AddOData();
             var logPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "log");
             services.AddElmah<XmlFileErrorLog>(options => options.LogPath = logPath);
@@ -59,12 +63,18 @@ namespace MiFloraGateway
             services.AddSingleton<IDataTransmitter, DataTransmitter>();
             services.AddSingleton<IRunOnStartup>(sc => (IRunOnStartup)sc.GetRequiredService<IDataTransmitter>());
 
+            services.AddSingleton<ITypeConverter, StringTypeConverter>();
+            services.AddSingleton<ITypeConverter, IntTypeConverter>();
+            services.AddSingleton<ITypeConverter, BooleanTypeConverter>();
             services.AddSingleton<ISettingsManager, SettingsManager>();
-            services.AddTransient<Func<Task<IdentityUser>>>(sc =>
+            services.AddSingleton<IRunOnStartup>(sc => (IRunOnStartup)sc.GetRequiredService<ISettingsManager>());
+            services.AddTransient<Func<Task<IdentityUser?>>>(sc =>
             {
-                var identity = sc.GetRequiredService<IHttpContextAccessor>().HttpContext.User;
-                var userManager = sc.GetRequiredService<UserManager<IdentityUser>>();
-                return () => userManager.GetUserAsync(identity);
+                return () => {
+                    var identity = sc.GetRequiredService<IHttpContextAccessor>().HttpContext?.User;
+                    var userManager = sc.GetRequiredService<UserManager<IdentityUser>>();
+                    return identity != null ? userManager.GetUserAsync(identity) : Task.FromResult<IdentityUser?>(null);
+                };
             });
 
             services.AddHangfire((serviceProvider, configuration) => configuration
@@ -109,9 +119,11 @@ namespace MiFloraGateway
                  .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
                  {
                      options.Cookie.Name = "MifloraAuth";
+                     options.Cookie.IsEssential = true;
                      options.Cookie.HttpOnly = true;
                      options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                      options.Cookie.SameSite = SameSiteMode.Strict;
+                     options.Cookie.Expiration = new TimeSpan(1, 0, 0);
                      options.SlidingExpiration = true;
                      options.ExpireTimeSpan = new TimeSpan(1, 0, 0);
                  });
@@ -127,7 +139,8 @@ namespace MiFloraGateway
 
             services.AddHttpClient<IDeviceCommunicationService, DeviceCommunicationService>();
             services.AddSingleton<IDeviceLockManager, DeviceLockManager>();
-            services.AddSingleton(GraphQLSchema.MakeSchema());
+            services.AddScoped<LogEntryHandler>();
+            services.AddSingleton(GraphQL.Schema.MakeSchema());
 
             services.AddSpaStaticFiles(options =>
             {
@@ -176,6 +189,10 @@ namespace MiFloraGateway
             app.UseHangfireDashboard(options: new DashboardOptions {
                 Authorization = new[] { new HangfireAuthorizationFilter() }
             });
+
+#if DEBUG
+            app.UseOpenApi();
+#endif
 
             foreach (var runOnStartup in runOnStartups)
             {

@@ -16,6 +16,9 @@ import { AboutComponent } from './about/about.component';
 import { TasksComponent } from './tasks/tasks.component';
 import { ChartComponent } from './chart/chart.component';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { API_BASE_URL, AuthenticationClient, OnboardingClient } from './api/rest/RestClient';
+import { OnboardingComponent } from './onboarding/onboarding.component';
+import { DynamicFormComponent} from './dynamic.form/dynamic.form.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +32,9 @@ import { NgApexchartsModule } from 'ng-apexcharts';
     PlantsComponent,
     AboutComponent,
     TasksComponent,
-    ChartComponent
+    ChartComponent,
+    OnboardingComponent,
+    DynamicFormComponent
   ],
   imports: [
     BrowserModule,
@@ -40,7 +45,11 @@ import { NgApexchartsModule } from 'ng-apexcharts';
     ReactiveFormsModule,
     NgApexchartsModule
   ],
-  providers: [],
+  providers: [
+    { provide: API_BASE_URL, useValue: '' },
+    AuthenticationClient,
+    OnboardingClient
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

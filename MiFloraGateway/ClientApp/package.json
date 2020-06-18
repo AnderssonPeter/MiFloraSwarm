@@ -9,7 +9,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "bundle-report": "ng build --stats-json && webpack-bundle-analyzer dist/miflora-gateway/stats-es2015.json",
-    "compress": "gulp compress"
+    "compress": "gulp compress",
+    "generate-open-api-client": "ng-openapi-gen --input src/app/api/open.api.schema.json --output src/app/api/open-api"
   },
   "private": true,
   "dependencies": {
@@ -28,6 +29,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.12.1",
     "apexcharts": "^3.19.0",
     "bulma": "^0.8.0",
+    "bulma-switch": "^2.0.0",
     "bulmaswatch": "^0.7.5",
     "chart.js": "^2.9.3",
     "ng-apexcharts": "^1.2.3",
@@ -40,6 +42,7 @@
     "@angular/cli": "^9.0.5",
     "@angular/compiler-cli": "^9.0.5",
     "@angular/language-service": "^9.0.5",
+    "@graphql-codegen/typescript-apollo-angular": "^1.15.0",
     "@types/jasmine": "^3.5.8",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.12.29",
@@ -55,6 +58,7 @@
     "karma-coverage-istanbul-reporter": "~2.1.0",
     "karma-jasmine": "~2.0.1",
     "karma-jasmine-html-reporter": "^1.4.2",
+    "ng-openapi-gen": "^0.12.1",
     "protractor": "~5.4.3",
     "ts-node": "~8.3.0",
     "tslint": "~5.18.0",

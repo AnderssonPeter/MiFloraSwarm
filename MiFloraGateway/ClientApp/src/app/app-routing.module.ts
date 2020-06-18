@@ -12,11 +12,21 @@ import { AboutComponent } from './about/about.component';
 import { TasksComponent } from './tasks/tasks.component';
 import { DeviceResolverService } from './devices/device-resolver.service';
 import { AuthenticationGuard } from './services/authentication.guard';
+import { OnboardingComponent } from './onboarding/onboarding.component';
+import { OnboardingGuard } from './onboarding/onboarding.guard';
 
 const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+    canActivate: [OnboardingGuard],
+    data: {
+      hidden: true
+    }
+  },
+  {
+    path: 'onboarding',
+    component: OnboardingComponent,
     data: {
       hidden: true
     }

@@ -2,9 +2,8 @@
 
 namespace MiFloraGateway.Database
 {
-    public class Sensor
+    public class Sensor : EntityBase
     {
-        public int Id { get; set; }
         public string MACAddress { get; set; } = null!;
         public string Name { get; set; } = null!;
         public Plant? Plant { get; set; }

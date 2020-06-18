@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { faCogs, faHdd, faEye, faMicrochip, faSeedling, faAngleDoubleRight, faAngleDoubleLeft, faMagic, faInfoCircle, faSignOutAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { ActivatedRoute, Router, NavigationEnd, NavigationStart, NavigationCancel, NavigationError } from '@angular/router';
+import { AuthenticationService } from '../services/authentication.service';
 
 export interface RouteData
 {
@@ -31,8 +32,7 @@ export class LayoutComponent implements OnInit {
   ];
   currentPage: RouteData = { label: '', icon: undefined };
   loading = false;
-  constructor(private router: Router, private activatedRoute: ActivatedRoute) {
-    
+  constructor(private router: Router, private activatedRoute: ActivatedRoute, private authenticationService: AuthenticationService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.loading = true;
@@ -58,6 +58,18 @@ export class LayoutComponent implements OnInit {
 
   toggle() {
     this.expanded = !this.expanded;
+  }
+
+  async logout() {
+    this.loading = true;
+    try {
+      await this.authenticationService.logout();      
+      this.router.navigate(['login']);
+    }
+    finally
+    {
+      this.loading = false;
+    }
   }
 
 }

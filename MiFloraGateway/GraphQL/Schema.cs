@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using EntityGraphQL.Schema;
 using Microsoft.AspNetCore.Identity;
@@ -9,35 +8,29 @@ using MiFloraGateway.Devices;
 using MiFloraGateway.Plants;
 using MiFloraGateway.Sensors;
 
-namespace MiFloraGateway
+namespace MiFloraGateway.GraphQL
 {
-
-    public class DeviceError
-    {
-        public DateTime When { get; set; }
-        public string? Message { get; set; }
-        public DeviceError(DateTime when, string? message)
-        {
-            this.When = when;
-            this.Message = message;
-        }
-    }
-    public class GraphQLSchema
+    public class Schema
     {
         public static SchemaProvider<DatabaseContext> MakeSchema()
         {
             // build our schema directly from the DB Context
             var schema = SchemaBuilder.FromObject<DatabaseContext>();
-            schema.AddCustomScalarType(typeof(DateTime), "Date", true);
-            schema.AddCustomScalarType(typeof(DateTime?), "Date");
-            schema.AddCustomScalarType(typeof(DateTimeOffset), "DateTimeOffset", true);
-            schema.AddCustomScalarType(typeof(DateTimeOffset?), "DateTimeOffset");
-            schema.AddCustomScalarType(typeof(TimeSpan), "TimeSpan", true);
-            schema.AddCustomScalarType(typeof(TimeSpan?), "TimeSpan");
-            schema.AddCustomScalarType(typeof(short), "Short", true);
-            schema.AddCustomScalarType(typeof(short?), "Short");
+
+            /*schema.AddScalarType<DateTime>("Date", "");*/
+            schema.AddScalarType<DateTimeOffset>("DateTimeOffset", "");
+            schema.AddScalarType<TimeSpan>("TimeSpan", "");
+            /*schema.AddScalarType<short>("Short", "");*/
             //schema.AddCustomScalarType(typeof(void), "Void");
-            schema.AddType<Empty>("Empty").AddAllFields();
+
+            //schema.RemoveType<IdentityUser>(); //Users
+            schema.RemoveTypeAndAllFields<IdentityRole>(); //Roles
+            schema.RemoveTypeAndAllFields<IdentityUserLogin<string>>(); //UserLogins
+            schema.RemoveTypeAndAllFields<IdentityRoleClaim<string>>(); //RoleClaims
+            schema.RemoveTypeAndAllFields<IdentityUserRole<string>>(); //UserRoles
+            schema.RemoveTypeAndAllFields<IdentityUserClaim<string>>(); //UserClaims
+            schema.RemoveTypeAndAllFields<IdentityUserToken<string>>(); //UserTokens
+
             schema.AddType<DeviceError>("DeviceError").AddAllFields();
 
             schema.Type<Device>().RemoveField(x => x.IPAddress);
@@ -81,8 +74,6 @@ namespace MiFloraGateway
             if (!string.IsNullOrEmpty(search))
             {
                 var words = search.Split(' ');
-                Func<string, bool> condition = (text) => EF.Functions.Like(text, "%" + search + "%");
-
                 baseQuery = databaseContext.Devices.Where(x => EF.Functions.Like(x.Name, "%" + search + "%") ||
                                                                EF.Functions.Like(x.IPAddress, "%" + search + "%") ||
                                                                EF.Functions.Like(x.MACAddress, "%" + search + "%") ||
@@ -108,19 +99,5 @@ namespace MiFloraGateway
                 Total = total
             };
         }
-    }
-
-    public class DevicePagination : Pagination
-    {
-        [Description("collection of devices")]
-        public IQueryable<Device> Devices { get; set; } = null!;
-    }
-
-    public class Pagination
-    {
-        [Description("total records to match search")]
-        public int Total { get; set; }
-        [Description("total pages based on page size")]
-        public int PageCount { get; set; }
     }
 }

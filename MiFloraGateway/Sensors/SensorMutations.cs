@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using EntityGraphQL.Authorization;
 using EntityGraphQL.Schema;
+using Hangfire.Console.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MiFloraGateway.Authentication;
 using MiFloraGateway.Database;
+using MiFloraGateway.Logs;
 
 namespace MiFloraGateway.Sensors
 {
+
+    [MutationArguments]
     public class AddSensorParameters
     {
         [Required]
@@ -29,6 +35,7 @@ namespace MiFloraGateway.Sensors
         public int Id { get; set; }
     }
 
+    [MutationArguments]
     public class DeleteSensorParameters
     {
         [Required]
@@ -39,86 +46,88 @@ namespace MiFloraGateway.Sensors
     {
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Expression<Func<DatabaseContext, Sensor>> AddSensor(DatabaseContext databaseContext, AddSensorParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Expression<Func<DatabaseContext, Sensor>>> AddSensor(DatabaseContext databaseContext, AddSensorParameters model, LogEntryHandler logEntryHandler)
         {
-            try
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Add))
             {
-                //get current user, try to convert this into a async method so we can get the user!
-                var plant = model.PlantId.HasValue ? databaseContext.Plants.Single(plant => plant.Id == model.PlantId.Value) : null;
-                var Sensor = new Sensor()
+                try
                 {
-                    MACAddress = model.MACAddress,
-                    Name = model.Name,
-                    Plant = plant
-                };
-                databaseContext.Sensors.Add(Sensor);
-                databaseContext.SaveChanges();
-                databaseContext.AddLogEntry(LogEntryEvent.Add, sensor: Sensor).Success();
-                return ctx => ctx.Sensors.Single(x => x.Id == Sensor.Id);
-            }
-            catch (Exception ex)
-            {
-                databaseContext.AddLogEntry(LogEntryEvent.Add).Failure(ex, "Failed to add Sensor!");
-                throw ex;
+                    var plant = model.PlantId.HasValue ? await databaseContext.Plants.GetRequiredByIdAsync(model.PlantId.Value) : null;
+                    var sensor = new Sensor()
+                    {
+                        MACAddress = model.MACAddress,
+                        Name = model.Name,
+                        Plant = plant
+                    };
+                    databaseContext.Sensors.Add(sensor);
+                    await databaseContext.SaveChangesAsync();
+                    logEntry.Attach(sensor);
+                    logEntry.Success();
+                    return ctx => ctx.Sensors.GetRequiredById(sensor.Id);
+                }
+                catch (Exception ex)
+                {
+                    logEntry.Failure(ex, "Failed to add Sensor!");
+                    throw;
+                }
             }
         }
 
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Expression<Func<DatabaseContext, Sensor>> EditSensor(DatabaseContext databaseContext, EditSensorParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Expression<Func<DatabaseContext, Sensor>>> EditSensor(DatabaseContext databaseContext, EditSensorParameters model, LogEntryHandler logEntryHandler)
         {
-            //get current user, try to convert this into a async method so we can get the user!
-            var sensor = databaseContext.Sensors.Single(x => x.Id == model.Id);
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Edit, sensor: sensor))
+            var sensor = await databaseContext.Sensors.GetRequiredByIdAsync(model.Id);
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Edit, sensor: sensor))
             {
                 try
                 {
-                    var plant = model.PlantId.HasValue ? databaseContext.Plants.Single(plant => plant.Id == model.PlantId.Value) : null;
+                    var plant = model.PlantId.HasValue ? await databaseContext.Plants.GetRequiredByIdAsync(model.PlantId.Value) : null;
                     sensor.MACAddress = model.MACAddress;
                     sensor.Name = model.Name;
                     sensor.Plant = plant;
-                    databaseContext.SaveChanges();
+                    await databaseContext.SaveChangesAsync();
                     logEntry.Success();
-                    return ctx => ctx.Sensors.Single(x => x.Id == sensor.Id);
+                    return ctx => ctx.Sensors.GetRequiredById(sensor.Id);
                 }
                 catch (Exception ex)
                 {
                     logEntry.Failure(ex, "Failed to edit Sensor!");
-                    throw ex;
+                    throw;
                 }
             }
         }
 
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Empty DeleteSensor(DatabaseContext databaseContext, DeleteSensorParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Sensor> DeleteSensor(DatabaseContext databaseContext, DeleteSensorParameters model, LogEntryHandler logEntryHandler)
         {
             //get current user, try to convert this into a async method so we can get the user!
-            var sensor = databaseContext.Sensors.Single(x => x.Id == model.Id);
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Delete, sensor: sensor))
+            var sensor = await databaseContext.Sensors.GetRequiredByIdAsync(model.Id);
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Delete, sensor: sensor))
             {
                 try
                 {
                     databaseContext.Sensors.Remove(sensor);
-                    databaseContext.SaveChanges();
+                    await databaseContext.SaveChangesAsync();
                     logEntry.Success();
-                    return Empty.Instance;
+                    return sensor;
                 }
                 catch (Exception ex)
                 {
                     logEntry.Failure(ex, "Failed to delete Sensor!");
-                    throw ex;
+                    throw;
                 }
             }
         }
 
-        /* Wait for EntityGraphQL to support async mutations: https://github.com/lukemurray/EntityGraphQL/issues/50
+        
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public async Task<Expression<Func<DatabaseContext, IQueryable<Sensor>>>> Scan(DatabaseContext databaseContext, Func<Task<IdentityUser>> getUser, IJobManager jobManager)
+        public async Task<Expression<Func<DatabaseContext, IEnumerable<Sensor>>>> ScanForDevices(IJobManager jobManager)
         {
-            var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectSensorCommand>(ddc => ddc.ScanAsync()).ConfigureAwait(false);
-            return ctx => ctx.Sensors.Where(x => ids.Contains(x.Id));
-        }*/
+            //var ids = await jobManager.StartWaitAsync<IEnumerable<int>, IDetectSensorCommand>(ddc => ddc.ScanAsync()).ConfigureAwait(false);
+            return ctx => ctx.Sensors.Where(x => 1 == 1).AsEnumerable(); //GetByIds(ids);
+        }
     }
 }

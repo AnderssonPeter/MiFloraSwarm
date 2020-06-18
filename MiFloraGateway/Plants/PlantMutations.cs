@@ -8,9 +8,13 @@ using EntityGraphQL.Schema;
 using Microsoft.AspNetCore.Identity;
 using MiFloraGateway.Authentication;
 using MiFloraGateway.Database;
+using MiFloraGateway.Logs;
+using MiFloraGateway.Sensors;
 
 namespace MiFloraGateway.Plants
 {
+
+    [MutationArguments]
     public class AddPlantParameters
     {
         [Required]
@@ -83,6 +87,7 @@ namespace MiFloraGateway.Plants
         public int Id { get; set; }
     }
 
+    [MutationArguments]
     public class DeletePlantParameters
     {
         [Required]
@@ -93,65 +98,67 @@ namespace MiFloraGateway.Plants
     {
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Expression<Func<DatabaseContext, Plant>> AddPlant(DatabaseContext databaseContext, AddPlantParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Expression<Func<DatabaseContext, Plant>>> AddPlant(DatabaseContext databaseContext, AddPlantParameters model, LogEntryHandler logEntryHandler)
         {
-            try
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Add))
             {
-                //get current user, try to convert this into a async method so we can get the user!
-                var plant = new Plant()
+                try
                 {
-                    LatinName = model.LatinName,
-                    Alias = model.Alias,
-                    Display = model.Display,
-                    ImageUrl = model.ImageUrl,
-                    Basic = new PlantBasic
+                    var plant = new Plant()
                     {
-                        Blooming = model.Blooming,
-                        Category = model.Category,
-                        Color = model.Color,
-                        FloralLanguage = model.FloralLanguage,
-                        Origin = model.Origin,
-                        Production = model.Production
-                    },
-                    Maintenance = new PlantMaintenance
-                    {
-                        Fertilization = model.Fertilization,
-                        Pruning = model.Pruning,
-                        Size = model.Size,
-                        Soil = model.Soil,
-                        Sunlight = model.Sunlight,
-                        Watering = model.Watering
-                    },
-                    Parameters = new PlantParameters
-                    {
-                        EnvironmentHumidity = new Database.Range(model.MinEnvironmentHumidity, model.MaxEnvironmentHumidity),
-                        LightLux = new Database.Range(model.MinLightLux, model.MaxLightLux),
-                        LightMmol = new Database.Range(model.MinLightMmol, model.MaxLightMmol),
-                        SoilFertility = new Database.Range(model.MinSoilFertility, model.MaxSoilFertility),
-                        SoilHumidity = new Database.Range(model.MinSoilHumidity, model.MaxSoilHumidity),
-                        Temperature = new Database.Range(model.MinTemperature, model.MaxTemperature)
-                    }
-                };
-                databaseContext.Plants.Add(plant);
-                databaseContext.SaveChanges();
-                databaseContext.AddLogEntry(LogEntryEvent.Add, plant: plant).Success();
-                return ctx => ctx.Plants.Single(x => x.Id == plant.Id);
-            }
-            catch (Exception ex)
-            {
-                databaseContext.AddLogEntry(LogEntryEvent.Add).Failure(ex, "Failed to add plant!");
-                throw ex;
+                        LatinName = model.LatinName,
+                        Alias = model.Alias,
+                        Display = model.Display,
+                        ImageUrl = model.ImageUrl,
+                        Basic = new PlantBasic
+                        {
+                            Blooming = model.Blooming,
+                            Category = model.Category,
+                            Color = model.Color,
+                            FloralLanguage = model.FloralLanguage,
+                            Origin = model.Origin,
+                            Production = model.Production
+                        },
+                        Maintenance = new PlantMaintenance
+                        {
+                            Fertilization = model.Fertilization,
+                            Pruning = model.Pruning,
+                            Size = model.Size,
+                            Soil = model.Soil,
+                            Sunlight = model.Sunlight,
+                            Watering = model.Watering
+                        },
+                        Parameters = new PlantParameters
+                        {
+                            EnvironmentHumidity = new Database.Range(model.MinEnvironmentHumidity, model.MaxEnvironmentHumidity),
+                            LightLux = new Database.Range(model.MinLightLux, model.MaxLightLux),
+                            LightMmol = new Database.Range(model.MinLightMmol, model.MaxLightMmol),
+                            SoilFertility = new Database.Range(model.MinSoilFertility, model.MaxSoilFertility),
+                            SoilHumidity = new Database.Range(model.MinSoilHumidity, model.MaxSoilHumidity),
+                            Temperature = new Database.Range(model.MinTemperature, model.MaxTemperature)
+                        }
+                    };
+                    databaseContext.Plants.Add(plant);
+                    await databaseContext.SaveChangesAsync();
+                    logEntry.Attach(plant);
+                    logEntry.Success();
+                    return ctx => ctx.Plants.GetRequiredById(plant.Id);
+                }
+                catch (Exception ex)
+                {
+                    logEntry.Failure(ex, "Failed to add plant!");
+                    throw;
+                }
             }
         }
 
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Expression<Func<DatabaseContext, Plant>> EditPlant(DatabaseContext databaseContext, EditPlantParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Expression<Func<DatabaseContext, Plant>>> EditPlant(DatabaseContext databaseContext, EditPlantParameters model, LogEntryHandler logEntryHandler)
         {
-            //get current user, try to convert this into a async method so we can get the user!
-            var plant = databaseContext.Plants.Single(x => x.Id == model.Id);
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Edit, plant: plant))
-            {
+            var plant = await databaseContext.Plants.GetRequiredByIdAsync(model.Id);
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Edit, plant: plant))
+            {                
                 try
                 {
                     plant.LatinName = model.LatinName;
@@ -180,37 +187,36 @@ namespace MiFloraGateway.Plants
                     plant.Parameters.SoilHumidity = new Database.Range(model.MinSoilHumidity, model.MaxSoilHumidity);
                     plant.Parameters.Temperature = new Database.Range(model.MinTemperature, model.MaxTemperature);
 
-                    databaseContext.SaveChanges();
+                    await databaseContext.SaveChangesAsync();
                     logEntry.Success();
-                    return ctx => ctx.Plants.Single(x => x.Id == plant.Id);
+                    return ctx => ctx.Plants.GetRequiredById(plant.Id);
                 }
                 catch (Exception ex)
                 {
                     logEntry.Failure(ex, "Failed to edit plant!");
-                    throw ex;
+                    throw;
                 }
             }
         }
 
         [GraphQLMutation]
         [GraphQLAuthorize(Roles.Admin)]
-        public Empty DeletePlant(DatabaseContext databaseContext, DeletePlantParameters model, Func<Task<IdentityUser>> getUser)
+        public async Task<Plant> DeletePlant(DatabaseContext databaseContext, DeletePlantParameters model, LogEntryHandler logEntryHandler)
         {
-            //get current user, try to convert this into a async method so we can get the user!
-            var plant = databaseContext.Plants.Single(x => x.Id == model.Id);
-            using (var logEntry = databaseContext.AddLogEntry(LogEntryEvent.Delete, plant: plant))
+            var plant = await databaseContext.Plants.GetRequiredByIdAsync(model.Id);
+            await using (var logEntry = logEntryHandler.AddLogEntry(LogEntryEvent.Delete, plant: plant))
             {
                 try
                 {
                     databaseContext.Plants.Remove(plant);
-                    databaseContext.SaveChanges();
+                    await databaseContext.SaveChangesAsync();
                     logEntry.Success();
-                    return Empty.Instance;
+                    return plant;
                 }
                 catch (Exception ex)
                 {
                     logEntry.Failure(ex, "Failed to delete plant!");
-                    throw ex;
+                    throw;
                 }
             }
         }

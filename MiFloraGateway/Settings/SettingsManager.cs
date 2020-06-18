@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MiFloraGateway.Database;
 using Nito.AsyncEx;
@@ -60,25 +61,41 @@ namespace MiFloraGateway
             {
                 throw new ArgumentOutOfRangeException(nameof(T), "Wrong type for that setting!");
             }
+            await SetUnsafeAsync(setting, value, cancellationToken);
+        }
+
+        public async Task SetUnsafeAsync(Settings setting, object value, CancellationToken cancellationToken = default)
+        {
+            var type = GetTypeForSetting(setting);
+            if (value != null && value.GetType() != type)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Wrong type for that setting!");
+            }
             using (await locker.LockAsync(cancellationToken).ConfigureAwait(false))
             {
-                var stringValue = this.typeConverters[type].ConvertToString(value);
-                var entity = new Setting { Key = setting, Value = stringValue, LastChanged = DateTime.Now };
+                var stringValue = type != typeof(string) ? this.typeConverters[type].ConvertToString(value) : (string?)value;
                 if (storage.ContainsKey(setting))
                 {
+                    var entity = await this.databaseContext.Settings.SingleAsync(x => x.Key == setting, cancellationToken);
+                    entity.Value = stringValue;
+                    entity.LastChanged = DateTime.Now;
                     this.databaseContext.Settings.Update(entity);
                 }
                 else
                 {
+                    var entity = new Setting { Key = setting, Value = stringValue, LastChanged = DateTime.Now };
                     this.databaseContext.Settings.Add(entity);
                 }
                 await this.databaseContext.SaveChangesAsync(cancellationToken);
 
                 storage[setting] = value;
-                if (callbackBag.TryGetValue(setting, out var callbacks))
-                {
-                    callbacks.ForEach(c => c(setting));
-                }
+            }
+
+            if (callbackBag.TryGetValue(setting, out var callbacks))
+            {
+                callbacks.ForEach(c => {
+                    c(setting);
+                });
             }
         }
 
@@ -98,8 +115,9 @@ namespace MiFloraGateway
         {
             foreach (var setting in databaseContext.Settings)
             {
-                var converter = this.typeConverters[GetTypeForSetting(setting.Key)];
-                storage.Add(setting.Key, converter.ConvertFromString(setting.Value));
+                var type = GetTypeForSetting(setting.Key);
+                var value = type != typeof(string) ? this.typeConverters[type].ConvertFromString(setting.Value) : (string?)setting.Value;
+                storage.Add(setting.Key, value);
             }
         }
 
