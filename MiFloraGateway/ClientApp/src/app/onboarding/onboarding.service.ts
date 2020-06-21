@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { OnboardingClient, SetupModel } from '../api/rest/RestClient';
+import { OnboardingClient, SetupModel } from '../api/rest/rest.client';
 import { ReplaySubject } from 'rxjs';
 @Injectable({
     providedIn: 'root'

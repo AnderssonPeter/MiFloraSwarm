@@ -202,6 +202,12 @@ export class AuthenticationClient implements IAuthenticationClient {
             result200 = _responseText === "" ? null : <UserModel>JSON.parse(_responseText, this.jsonParseReviver);
             return _observableOf(result200);
             }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result401: any = null;
+            result401 = _responseText === "" ? null : <ErrorResult>JSON.parse(_responseText, this.jsonParseReviver);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            }));
         } else if (status !== 200 && status !== 204) {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);

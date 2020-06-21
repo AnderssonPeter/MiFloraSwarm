@@ -1,82 +1,12 @@
-<!--<div class="hero is-fullheight">
-    <div class="hero-body">
-        <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-6-tablet is-5-desktop is-4-widescreen">
-                    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="box">
-                        <div class="field">
-                            <div class="control has-icons-left has-icons-right">
-                                <input class="input" type="text" placeholder="Username" formControlName="username">
-                                <span class="icon is-small is-left">
-                                    <fa-icon [icon]="icons.username"></fa-icon>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <div class="control has-icons-left has-icons-right">
-                                <input class="input" type="password" placeholder="Password" formControlName="password">
-                                <span class="icon is-small is-left">
-                                    <fa-icon [icon]="icons.password"></fa-icon>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="field is-grouped">
-                            <div class="control">
-                                <button class="button is-primary" type="submit" [ngClass]="{ 'is-loading': loading }" [disabled]="!form.valid || loading"></button>
-                            </div>
-                            <div class="control">
-                                <p class="has-text-danger">{{error}}</p>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>-->
-<!--<div class="hero is-fullheight">
-    <div class="hero-body">
-        <div class="container">
-            <div class="card is-centered">
-                <header class="card-header">
-                    <p class="card-header-icon">
-                        <img src="assets/logo.svg" />
-                    </p>
-                    <p class="card-header-title">
-                        Onboarding
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-
-                    </div>
-                </div>
-                <footer class="card-footer">
-                    <a class="card-footer-item">
-                        Test
-                    </a>
-                </footer>
-            </div>
-        </div>
-    </div>
-</div>-->
-
-
 <div class="hero is-fullheight">
     <div class="hero-body">
         <div class="container">
             <div class="columns is-centered">
                 <div class="column is-6-tablet is-5-desktop is-4-widescreen">
-                    <nav class="panel is-info">
-                        <p class="panel-heading">
-                            <img src="assets/logo.svg" />
-                            Onboarding
-                        </p>
-                        <div class="panel-block">
-                            <dynamic-form [dynamicForm]="dynamicForm" (submit)="onSubmit($event)">
-                            </dynamic-form>
-                        </div>
-                    </nav>
+                    <app-dialog title="Onboarding">
+                        <app-dynamic-form [dynamicForm]="dynamicForm">
+                        </app-dynamic-form>
+                    </app-dialog>
                 </div>
             </div>
         </div>

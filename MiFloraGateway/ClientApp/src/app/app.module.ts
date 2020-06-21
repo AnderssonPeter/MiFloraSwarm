@@ -16,9 +16,10 @@ import { AboutComponent } from './about/about.component';
 import { TasksComponent } from './tasks/tasks.component';
 import { ChartComponent } from './chart/chart.component';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { API_BASE_URL, AuthenticationClient, OnboardingClient } from './api/rest/RestClient';
+import { API_BASE_URL, AuthenticationClient, OnboardingClient } from './api/rest/rest.client';
 import { OnboardingComponent } from './onboarding/onboarding.component';
 import { DynamicFormComponent} from './dynamic.form/dynamic.form.component';
+import { DialogComponent } from './dialog/dialog.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { DynamicFormComponent} from './dynamic.form/dynamic.form.component';
     TasksComponent,
     ChartComponent,
     OnboardingComponent,
-    DynamicFormComponent
+    DynamicFormComponent,
+    DialogComponent
   ],
   imports: [
     BrowserModule,

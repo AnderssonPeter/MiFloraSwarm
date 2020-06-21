@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -34,6 +36,8 @@ namespace MiFloraGateway.Authentication
         /// <returns></returns>
         [HttpPost]
         [Route("Login/{username}/{password}")]
+        [ProducesResponseType(statusCode: (int)HttpStatusCode.OK, type: typeof(UserModel))]
+        [ProducesResponseType(statusCode: (int)HttpStatusCode.Unauthorized, type: typeof(ErrorResult))]
         public async Task<ActionResult<UserModel>> Login([FromRoute]string username, [FromRoute]string password)
         {
             var result = await signInManager.PasswordSignInAsync(username, password, true, false);
@@ -43,7 +47,11 @@ namespace MiFloraGateway.Authentication
             }
             else
             {
-                return this.Unauthorized();
+                return this.Unauthorized(new ErrorResult
+                {
+                    ErrorMessage = "Invalid username and/or password",
+                    Errors = new List<ErrorResultField>()
+                }); ;
             }
         }
 

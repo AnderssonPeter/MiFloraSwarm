@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ReplaySubject, Observable } from 'rxjs';
-import { AuthenticationClient, UserModel, ApiException } from '../api/rest/RestClient';
+import { AuthenticationClient, UserModel, ApiException } from '../api/rest/rest.client';
 
 
 

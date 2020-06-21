@@ -114,7 +114,7 @@
       "enumNameGeneratorType": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "MiFloraGateway/ClientApp/src/app/api/rest/RestClient.ts"
+      "output": "MiFloraGateway/ClientApp/src/app/api/rest/rest.client.ts"
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SettingDefinitions, StringSetting, StringSettingType, BooleanSetting, NumberSetting } from '../settings';
-import { SetupModel, Settings, ErrorResult } from '../api/rest/RestClient';
-import OnboardingService from './OnboardingService';
+import { SetupModel, Settings, ErrorResult } from '../api/rest/rest.client';
+import OnboardingService from './onboarding.service';
 import DynamicForm, { FieldType, FieldRequirment } from '../dynamic.form/dynamic.form';
 import { Router } from '@angular/router';
 
@@ -11,12 +11,10 @@ import { Router } from '@angular/router';
     styleUrls: ['./onboarding.component.scss']
 })
 export class OnboardingComponent implements OnInit {
-    error?: string;
-    public dynamicForm: DynamicForm;
-    loading = false;
+    public readonly dynamicForm: DynamicForm;
 
     constructor(private readonly onboardingService: OnboardingService, private readonly router: Router) {
-        this.dynamicForm = new DynamicForm(() => this.save());
+        this.dynamicForm = new DynamicForm(() => this.saveAsync());
         this.dynamicForm.fieldContainer
             .addField(FieldType.Text, 'Username', 'Username', 'Admin', { fieldRequirments: [ 'Required'] })
             .addField(FieldType.Password, 'Password', 'Password', '', { fieldRequirments: [ 'Required', { minimumLength: 6 } ] })
@@ -50,7 +48,7 @@ export class OnboardingComponent implements OnInit {
         });
     }
 
-    async save() {
+    async saveAsync() {
         const settings = Object.values<Settings | String>(Settings).filter(x => typeof(x) === 'number') as Settings[];
         const settingsValues = settings.reduce<{ [key in keyof typeof Settings]?: any; }>((previous, current) => {
             const name = Settings[current];
@@ -92,11 +90,5 @@ export class OnboardingComponent implements OnInit {
     }
 
     ngOnInit(): void {
-    }
-
-
-    async onSubmit($event: any) {
-        console.log($event);
-
     }
 }

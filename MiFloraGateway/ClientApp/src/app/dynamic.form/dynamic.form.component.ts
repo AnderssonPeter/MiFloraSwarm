@@ -1,13 +1,11 @@
 import { Component, OnInit, Input, Output } from '@angular/core';
 import DynamicForm from './dynamic.form';
-import { ErrorResult } from '../api/rest/RestClient';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { EventEmitter } from '@angular/core';
 import { merge } from 'rxjs';
 import { first } from 'rxjs/operators';
 
 @Component({
-    selector: 'dynamic-form',
+    selector: 'app-dynamic-form',
     templateUrl: './dynamic.form.component.html',
     styleUrls: ['./dynamic.form.component.scss']
 })

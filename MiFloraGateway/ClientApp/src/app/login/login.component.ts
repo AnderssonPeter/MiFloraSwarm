@@ -4,6 +4,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AuthenticationService } from '../services/authentication.service';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 import { first, filter } from 'rxjs/operators';
+import DynamicForm, { FieldType } from '../dynamic.form/dynamic.form';
+import { ErrorResult } from '../api/rest/rest.client';
 
 
 @Component({
@@ -12,47 +14,37 @@ import { first, filter } from 'rxjs/operators';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  public form: FormGroup;
-  returnUrl?: string;
-  loading = false;
-  error?: string;
-  icons = {
-    username: faUser,
-    password: faLock
-  };
+    public readonly dynamicForm: DynamicForm;
 
-  constructor(formBuilder: FormBuilder, private readonly router: Router, private readonly route: ActivatedRoute, private readonly authenticationService: AuthenticationService) {
-    this.form = formBuilder.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required]
-    });
-  }
+    returnUrl?: string;
 
-  ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-    this.authenticationService.currentUser.pipe(first(), filter(user => !!user))
-                                          .subscribe(() => this.router.navigate([this.returnUrl]));
-  }
+    constructor(formBuilder: FormBuilder, private readonly router: Router, private readonly route: ActivatedRoute, private readonly authenticationService: AuthenticationService) {
+        this.dynamicForm = new DynamicForm(() => this.loginAsync());
+        this.dynamicForm.fieldContainer
+            .addField(FieldType.Text, 'Username', 'Username', 'Admin', { fieldRequirments: [ 'Required'] })
+            .addField(FieldType.Password, 'Password', 'Password', '', { fieldRequirments: [ 'Required', { minimumLength: 6 } ] });
+    }
 
-  async onSubmit() {
-    console.log(this.form);
-    // stop here if form is invalid
-    if (this.form.invalid) {
-      return;
+    ngOnInit(): void {
+        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+        this.authenticationService.currentUser.pipe(first(), filter(user => !!user))
+                                            .subscribe(() => this.router.navigate([this.returnUrl]));
     }
-    const username = this.form.get('username')?.value;
-    const password = this.form.get('password')?.value;
 
-    this.loading = true;
-    try {
-      await this.authenticationService.login(username, password);
-      this.router.navigate([this.returnUrl]);
+    async loginAsync() {
+        const username = this.dynamicForm.getStringValue('Username');
+        const password = this.dynamicForm.getStringValue('Password');
+        try {
+            await this.authenticationService.login(username, password);
+            this.router.navigate([this.returnUrl]);
+            return {
+                successMessage: 'Logged in'
+            }
+        }
+        catch(ex) {
+            return ex as ErrorResult;
+        }
+        finally {
+        }
     }
-    catch(ex) {
-      this.error = ex.message;
-    }
-    finally {
-      this.loading = false;
-    }
-  }
 }

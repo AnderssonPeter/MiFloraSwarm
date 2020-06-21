@@ -32,7 +32,7 @@ export class LayoutComponent implements OnInit {
   ];
   currentPage: RouteData = { label: '', icon: undefined };
   loading = false;
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private authenticationService: AuthenticationService) {
+  constructor(private router: Router, activatedRoute: ActivatedRoute, private authenticationService: AuthenticationService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.loading = true;
@@ -54,7 +54,7 @@ export class LayoutComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  
+
 
   toggle() {
     this.expanded = !this.expanded;
@@ -63,7 +63,7 @@ export class LayoutComponent implements OnInit {
   async logout() {
     this.loading = true;
     try {
-      await this.authenticationService.logout();      
+      await this.authenticationService.logout();
       this.router.navigate(['login']);
     }
     finally

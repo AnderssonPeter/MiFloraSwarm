@@ -1,9 +1,8 @@
 import { FormBuilder, FormControl, Validators, AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import { IconDefinition, faClock, faWaveSquare, faUser, faLock, faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { IPAddressOrHostnameRegex, IPAddressRegex } from '../regexes';
-import { ErrorResult, SuccessResult } from '../api/rest/RestClient';
+import { ErrorResult, SuccessResult } from '../api/rest/rest.client';
 import { first, distinct, skip } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
 
 export enum FieldType {
     Text,

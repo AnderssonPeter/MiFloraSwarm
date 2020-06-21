@@ -1,7 +1,7 @@
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { first } from 'rxjs/operators';
-import OnboardingService from './OnboardingService';
+import OnboardingService from './onboarding.service';
 
 @Injectable({
     providedIn: 'root'
