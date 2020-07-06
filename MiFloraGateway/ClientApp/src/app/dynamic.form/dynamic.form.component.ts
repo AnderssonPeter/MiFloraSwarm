@@ -14,6 +14,8 @@ export class DynamicFormComponent implements OnInit {
     @Input() dynamicForm?: DynamicForm;
     @Input() form?: FormGroup;
     @Input() submitText?: string;
+    @Input() showLabels: boolean = true;
+    @Input() showPlaceholder: boolean = false;
     message: string = '';
     messageType: 'error' | 'success' = 'error'
 

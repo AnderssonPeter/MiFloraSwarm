@@ -21,7 +21,7 @@ export class LoginComponent implements OnInit {
     constructor(formBuilder: FormBuilder, private readonly router: Router, private readonly route: ActivatedRoute, private readonly authenticationService: AuthenticationService) {
         this.dynamicForm = new DynamicForm(() => this.loginAsync());
         this.dynamicForm.fieldContainer
-            .addField(FieldType.Text, 'Username', 'Username', 'Admin', { fieldRequirments: [ 'Required'] })
+            .addField(FieldType.Text, 'Username', 'Username', '', { fieldRequirments: [ 'Required'] })
             .addField(FieldType.Password, 'Password', 'Password', '', { fieldRequirments: [ 'Required', { minimumLength: 6 } ] });
     }
 

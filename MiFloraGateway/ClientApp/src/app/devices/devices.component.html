@@ -1,5 +1,5 @@
 <section>
-    <div class="container is-fluid">
+    <div class="container is-fluid" *ngIf="devicePaginator?.content | async as content">
         <div class="card">
             <header class="card-header is-hidden-mobile">
                 <span href="#" class="card-header-icon">
@@ -11,23 +11,23 @@
                     Devices
                 </p>
             </header>
-            <div class="card-content">
+            <div class="card-content" [appLoading]="isScanning" loadingText="Scanning">
                 <div class="field is-grouped">
                     <div class="control search has-icons-left">
-                        <input class="input" type="text" placeholder="Search">
+                        <input class="input" type="text" placeholder="Search" [(ngModel)]="devicePaginator.search">
                         <span class="icon is-small is-left">
                             <fa-icon [icon]="icons.search"></fa-icon>
                         </span>
                     </div>
                     <div class="control scan" class="is-hidden-tablet">
-                        <button class="button">
+                        <button class="button" (click)="scan()">
                             <span class="icon is-small">
                                 <fa-icon [icon]="icons.scan"></fa-icon>
                             </span>
                         </button>
                     </div>
                     <div class="control scan" class="is-hidden-mobile">
-                        <button class="button">
+                        <button class="button" (click)="scan()">
                             <span class="icon is-small">
                                 <fa-icon [icon]="icons.scan"></fa-icon>
                             </span>
@@ -38,10 +38,28 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th (click)="devicePaginator.sortBy(DeviceSortField.Name)">
+                                Name
+                                <span class="icon is-small" *ngIf="devicePaginator.orderBy == DeviceSortField.Name">
+                                    <fa-icon *ngIf="devicePaginator.sortOrder == 'Ascending'" [icon]="icons.sortDown"></fa-icon>
+                                    <fa-icon *ngIf="devicePaginator.sortOrder == 'Descending'"  [icon]="icons.sortUp"></fa-icon>
+                                </span>
+                            </th>
                             <th class="failure-rate">Failure rate</th>
-                            <th class="is-hidden-touch">MAC address</th>
-                            <th class="is-hidden-mobile">IP address</th>
+                            <th class="is-hidden-touch" (click)="devicePaginator.sortBy(DeviceSortField.MacAddress)">
+                                MAC address
+                                <span class="icon is-small" *ngIf="devicePaginator.orderBy == DeviceSortField.MacAddress">
+                                    <fa-icon *ngIf="devicePaginator.sortOrder == 'Ascending'" [icon]="icons.sortDown"></fa-icon>
+                                    <fa-icon *ngIf="devicePaginator.sortOrder == 'Descending'"  [icon]="icons.sortUp"></fa-icon>
+                                </span>
+                            </th>
+                            <th class="is-hidden-mobile" (click)="devicePaginator.sortBy(DeviceSortField.IpAddress)">
+                                IP address
+                                <span class="icon is-small" *ngIf="devicePaginator.orderBy == DeviceSortField.IpAddress">
+                                    <fa-icon *ngIf="devicePaginator.sortOrder == 'Ascending'" [icon]="icons.sortDown"></fa-icon>
+                                    <fa-icon *ngIf="devicePaginator.sortOrder == 'Descending'"  [icon]="icons.sortUp"></fa-icon>
+                                </span>
+                            </th>
                             <th>Type</th>
                             <th class="is-hidden-mobile">Version</th>
                             <th>Tags</th>
@@ -51,25 +69,20 @@
                         <tr>
                             <th colspan="8">
                                 <nav class="pagination" role="navigation" aria-label="pagination">
-                                    <a class="pagination-previous" title="This is the first page" disabled>Previous</a>
-                                    <a class="pagination-next">Next page</a>
+                                    <a class="pagination-previous" title="This is the first page" [attr.disabled]="devicePaginator.page == 1 ? true : null" (click)="devicePaginator.setPage(devicePaginator.page - 1)">Previous</a>
+                                    <a class="pagination-next" [attr.disabled]="devicePaginator.page == content.pageCount ? true : null" (click)="devicePaginator.setPage(devicePaginator.page + 1)">Next page</a>
                                     <ul class="pagination-list">
-                                    <li>
-                                        <a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a>
-                                    </li>
-                                    <li>
-                                        <a class="pagination-link" aria-label="Goto page 2">2</a>
-                                    </li>
-                                    <li>
-                                        <a class="pagination-link" aria-label="Goto page 3">3</a>
-                                    </li>
+                                        <li *ngFor="let number of content.pageCount | range:1 ">
+                                            <a class="pagination-link is-current" *ngIf="number == devicePaginator.page" attr.aria-label="Page {{ number }}" aria-current="page" (click)="devicePaginator.setPage(number)">{{ number }}</a>
+                                            <a class="pagination-link" *ngIf="number != devicePaginator.page" attr.aria-label="Goto page {{ number }}" (click)="devicePaginator.setPage(number)">{{ number }}</a>
+                                        </li>
                                     </ul>
                                 </nav>
                             </th>
                           </tr>
                     </tfoot>
-                    <tbody>
-                        <tr *ngFor="let device of devices">
+                    <tbody [appLoading]="devicePaginator.isLoading" loadingText="Updating">
+                        <tr *ngFor="let device of content.items">
                             <td>{{device.name}}</td>
                             <td class="failure-rate" >
                                 <chart [dataLines]="device.failureRate"></chart>

@@ -10,6 +10,9 @@ table {
     td {
         white-space: nowrap;
     }
+    &.loading tbody {
+        
+    }
 }
 .control.search {
     max-width: 18rem;

@@ -1,7 +1,7 @@
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="field" *ngFor="let field of getFields()">
-        <label class="label">{{field.name}}</label>
+        <label class="label" *ngIf="showLabels">{{field.name}}</label>
 
         <!-- Boolean -->
         <input [id]="field.id" [name]="field.name" class="switch" type="checkbox" [formControlName]="field.id" *ngIf="field.isBoolean">
@@ -9,8 +9,8 @@
 
         <!-- Text -->
         <div class="control" [ngClass]="{ 'has-icons-left': field.icon !== null }" *ngIf="field.isString">
-            <input class="input" type="text" [formControlName]="field.id" *ngIf="!field.isPassword">
-            <input class="input" type="password" [formControlName]="field.id" *ngIf="field.isPassword">
+            <input class="input" type="text" [formControlName]="field.id" *ngIf="!field.isPassword" [placeholder]="showPlaceholder ? field.name : ''">
+            <input class="input" type="password" [formControlName]="field.id" *ngIf="field.isPassword" [placeholder]="showPlaceholder ? field.name : ''">
             <span class="icon is-small is-left" *ngIf="field.icon !== null">
                 <fa-icon [icon]="field.icon"></fa-icon>
             </span>

@@ -21,6 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuaHuaCaoCao.Client", "HuaH
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuaHuaCaoCao.Example", "HuaHuaCaoCao.Example\HuaHuaCaoCao.Example.csproj", "{79B15847-5AE0-4AA9-B367-3A8BD12A024E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL Scripts", "SQL Scripts", "{5309B884-3CF5-492F-82C8-9F0E69828620}"
+	ProjectSection(SolutionItems) = preProject
+		SQL Scripts\CreateRandomDevice.sql = SQL Scripts\CreateRandomDevice.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

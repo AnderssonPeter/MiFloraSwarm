@@ -6,7 +6,7 @@
             </span>
             {{currentPage.label}}
         </div>
-    
+
         <a role="button" class="navbar-burger burger" aria-label="menu" (click)="toggle()">
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
@@ -22,7 +22,7 @@
                 <span>{{menuItem.label}}</span>
             </a>
         </div>
-    
+
         <div class="navbar-end">
             <div class="navbar-item">
                 <div class="buttons">
@@ -73,7 +73,7 @@
             </ul>
         </nav>
     </aside>
-    <main class="column">
+    <main class="column" [ngClass]="{ loading: loading }">
         <div class="is-title-bar has-text-weight-bold is-hidden-mobile">
             <span class="icon">
                 <fa-icon [icon]="currentPage.icon"></fa-icon>
@@ -82,10 +82,4 @@
         </div>
         <router-outlet></router-outlet>
     </main>
-</div>
-<div class="spinner-container" [hidden]="!loading">
-    <div class="spinner">
-        <div class="double-bounce1"></div>
-        <div class="double-bounce2"></div>
-    </div>
 </div>

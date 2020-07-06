@@ -38,12 +38,23 @@ enum Settings {
 	MQTTUseTLS
 }
 
+enum SortOrder {
+	Ascending
+	Descending
+}
+
+enum DeviceSortField {
+	MACAddress
+	IPAddress
+	Name
+}
+
 
 type RootQuery {
 	"Return a Device by its Id"
 	device(id: Int!): Device
-	"Pagination. [defaults: page = 1, pageSize = 10, orderBy = \"name\"]"
-	devicePager(page: Int!, pageSize: Int!, search: String, orderBy: String): DevicePagination
+	"Pagination. [defaults: page = 1, pageSize = 10, search = \"\", orderBy = \"name\", sortAsc = true]"
+	devicePager(page: Int!, pageSize: Int!, search: String, orderBy: DeviceSortField!, sortOrder: SortOrder!): DevicePagination
 	devices: [Device!]
 	deviceSensorDistances: [DeviceSensorDistance!]
 	devicesTags: [DeviceTag!]
@@ -351,8 +362,6 @@ type DeletePlantParameters {
 type DevicePagination {
 	"collection of devices"
 	devices: [Device!]
-	"total records to match search"
-	total: Int!
 	"total pages based on page size"
 	pageCount: Int!
 }

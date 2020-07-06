@@ -1,13 +1,22 @@
+schema: src/app/api/graphql/schema.graphql
+
+documents:
+  - src/app/api/graphql/operations/*.graphql
+  - src/app/api/graphql/mutations/*.graphql
+
 generates:
-  types.ts:
+  src/app/api/graphql/graphql.client.ts:
     plugins:
-      - typescript
-      - typescript-type-graphql
-  sdk.ts:
-    plugins:
+      - time
       - typescript
       - typescript-operations
       - typescript-apollo-angular
+    config:
+      immutableTypes: true
+    hooks:
+      afterOneFileWrite:
+        - prettier --write
+
 config:
   scalars:
     DateTime: Date

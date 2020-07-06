@@ -21,12 +21,14 @@ namespace MiFloraGateway.Authentication
     {
         private readonly ILogger<Controller> logger;
         private readonly SignInManager<IdentityUser> signInManager;
+        private readonly UserManager<IdentityUser> userManager;
 
         public Controller(ILogger<Controller> logger, SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager) : base(userManager)
         {            
             this.logger = logger;
             this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         /// <summary>
@@ -40,10 +42,12 @@ namespace MiFloraGateway.Authentication
         [ProducesResponseType(statusCode: (int)HttpStatusCode.Unauthorized, type: typeof(ErrorResult))]
         public async Task<ActionResult<UserModel>> Login([FromRoute]string username, [FromRoute]string password)
         {
-            var result = await signInManager.PasswordSignInAsync(username, password, true, false);
+            var user = await userManager.FindByNameAsync(username);
+            var result = await signInManager.PasswordSignInAsync(user, password, true, false);
             if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
             {
-                return Ok(new UserModel { Username = User.Identity.Name ?? "N/A", IsAdmin = User.IsInRole(Roles.Admin) });
+                var isAdmin = await userManager.IsInRoleAsync(user, Roles.Admin);
+                return Ok(new UserModel { Username = user.UserName ?? "N/A", IsAdmin = isAdmin });
             }
             else
             {

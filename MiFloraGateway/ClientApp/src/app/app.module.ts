@@ -20,6 +20,9 @@ import { API_BASE_URL, AuthenticationClient, OnboardingClient } from './api/rest
 import { OnboardingComponent } from './onboarding/onboarding.component';
 import { DynamicFormComponent} from './dynamic.form/dynamic.form.component';
 import { DialogComponent } from './dialog/dialog.component';
+import { GraphQLModule } from './graphql.module';
+import { RangePipe } from './pipes/range.pipe';
+import { LoadingDirective } from './loading.directive';
 
 @NgModule({
   declarations: [
@@ -36,7 +39,9 @@ import { DialogComponent } from './dialog/dialog.component';
     ChartComponent,
     OnboardingComponent,
     DynamicFormComponent,
-    DialogComponent
+    DialogComponent,
+    RangePipe,
+    LoadingDirective
   ],
   imports: [
     BrowserModule,
@@ -45,7 +50,8 @@ import { DialogComponent } from './dialog/dialog.component';
     FontAwesomeModule,
     FormsModule,
     ReactiveFormsModule,
-    NgApexchartsModule
+    NgApexchartsModule,
+    GraphQLModule
   ],
   providers: [
     { provide: API_BASE_URL, useValue: '' },

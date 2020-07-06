@@ -32,6 +32,7 @@ namespace MiFloraGateway.GraphQL
         {
             try
             {
+                await Task.Delay(1000);
                 var results = await schemaProvider.ExecuteQueryAsync(query, dbContext, HttpContext.RequestServices, User.Identities.FirstOrDefault());
                 // gql compile errors show up in results.Errors
                 if (results.Errors.Any())

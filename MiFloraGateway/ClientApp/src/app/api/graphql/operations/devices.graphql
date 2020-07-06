@@ -1,0 +1,19 @@
+query getDevices($page: Int!, $pageSize: Int!, $search: String, $orderBy: DeviceSortField!, $sortOrder: SortOrder!) {
+  devicePager(page: $page, pageSize: $pageSize, search: $search, orderBy: $orderBy, sortOrder: $sortOrder) {
+    pageCount,
+    devices {
+      id,
+      name,
+      ipAddress,
+      macAddress,
+      failuresLast24Hours {
+        when,
+        message
+      },
+      tags {
+        tag,
+        value
+      }
+    }
+  }
+}

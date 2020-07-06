@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using EntityGraphQL.Schema;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,16 +11,20 @@ using MiFloraGateway.Sensors;
 
 namespace MiFloraGateway.GraphQL
 {
+
     public class Schema
     {
+        
         public static SchemaProvider<DatabaseContext> MakeSchema()
         {
             // build our schema directly from the DB Context
             var schema = SchemaBuilder.FromObject<DatabaseContext>();
 
             /*schema.AddScalarType<DateTime>("Date", "");*/
-            schema.AddScalarType<DateTimeOffset>("DateTimeOffset", "");
-            schema.AddScalarType<TimeSpan>("TimeSpan", "");
+            schema.AddScalarType<DateTimeOffset>(nameof(DateTimeOffset), "");
+            schema.AddScalarType<TimeSpan>(nameof(TimeSpan), "");
+            schema.AddEnum(nameof(SortOrder), typeof(SortOrder), "");
+            schema.AddEnum(nameof(DeviceSortField), typeof(DeviceSortField), "");
             /*schema.AddScalarType<short>("Short", "");*/
             //schema.AddCustomScalarType(typeof(void), "Void");
 
@@ -55,9 +60,9 @@ namespace MiFloraGateway.GraphQL
             schema.AddType<DevicePagination>(nameof(DevicePagination), "Device Pagination")
                   .AddAllFields();
 
-            schema.AddField("devicePager", new { page = 1, pageSize = 10, search = "", orderBy = nameof(Device.Name) },
+            schema.AddField("devicePager", new { page = 1, pageSize = 10, search = "", orderBy = DeviceSortField.Name, sortOrder = SortOrder.Ascending },
                 (db, p) => PaginateDevices(db, p),
-                "Pagination. [defaults: page = 1, pageSize = 10, orderBy = \"name\"]",
+                "Pagination. [defaults: page = 1, pageSize = 10, search = \"\", orderBy = \"name\", sortAsc = true]",
                 "DevicePagination");
 
             schema.Type<IdentityUser>().RemoveField(x => x.PasswordHash);
@@ -70,6 +75,8 @@ namespace MiFloraGateway.GraphQL
             int page = (int)arg.page;
             int pageSize = (int)arg.pageSize;
             string search = (string)arg.search;
+            DeviceSortField orderBy = (DeviceSortField)arg.orderBy;
+            SortOrder sortOrder = (SortOrder)arg.sortOrder;
             IQueryable<Device> baseQuery;
             if (!string.IsNullOrEmpty(search))
             {
@@ -84,19 +91,41 @@ namespace MiFloraGateway.GraphQL
             {
                 baseQuery = databaseContext.Devices;
             }
+            Expression<Func<Device, string>> keySelector;
+            switch (orderBy)
+            {
+                case DeviceSortField.MACAddress:
+                    keySelector = (Device device) => device.MACAddress;
+                    break;
+                case DeviceSortField.IPAddress:
+                    keySelector = (Device device) => device.IPAddress;
+                    break;
+                case DeviceSortField.Name:
+                    keySelector = (Device device) => device.Name;
+                    break;
+                default:
+                    throw new InvalidOperationException("Unknown sort field!");
+            }
+            if (sortOrder == SortOrder.Ascending)
+            {
+                baseQuery = baseQuery.OrderBy(keySelector);
+            }
+            else
+            {
+                baseQuery = baseQuery.OrderByDescending(keySelector);
+            }
+
             //Pagination
             int total = baseQuery.Count();
-            int pageCount = ((total + pageSize) / pageSize);
+            int pageCount = (int)Math.Ceiling((float)total / (float)pageSize);
             int skipTo = (page * pageSize) - (pageSize);
-            baseQuery = baseQuery.OrderBy(x => x.Name)
-                                 .Skip(skipTo)
+            baseQuery = baseQuery.Skip(skipTo)
                                  .Take(pageSize)
                                  .AsNoTracking();
             return new DevicePagination
             {
                 Devices = baseQuery,
-                PageCount = pageCount,
-                Total = total
+                PageCount = pageCount
             };
         }
     }
