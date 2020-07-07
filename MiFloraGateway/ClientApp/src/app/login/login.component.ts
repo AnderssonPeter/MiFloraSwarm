@@ -4,7 +4,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AuthenticationService } from '../services/authentication.service';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 import { first, filter } from 'rxjs/operators';
-import DynamicForm, { FieldType } from '../dynamic.form/dynamic.form';
+import DynamicForm from '../dynamic.form/dynamic.form';
+import { FieldType } from "../dynamic.form/FieldType";
 import { ErrorResult } from '../api/rest/rest.client';
 
 

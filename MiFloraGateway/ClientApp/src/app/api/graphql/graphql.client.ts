@@ -3,7 +3,7 @@ import { Injectable } from "@angular/core";
 import * as Apollo from "apollo-angular";
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: any }> = { [K in keyof T]: T[K] };
-// Generated on 2020-07-06T22:47:14+02:00
+// Generated on 2020-07-07T22:54:18+02:00
 
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {

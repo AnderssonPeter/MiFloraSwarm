@@ -118,7 +118,9 @@ export class LoadingDirective implements OnChanges, OnInit, OnDestroy {
     }
 
     private destroyLoadingIndicator() {
-        this.hideLoadingIndicator();
+        if (this.isActive) {
+            this.hideLoadingIndicator();
+        }
         this.loadingElement = null;
     }
 }

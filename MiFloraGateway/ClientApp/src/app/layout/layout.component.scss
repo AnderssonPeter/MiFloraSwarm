@@ -1,7 +1,7 @@
 @import "~src/_variables.scss";
 $expanded-menu-width: 12rem;
 $navbar-background-color: $black-ter;
-$navbar-highlight-color: $blue;
+$navbar-alternative-color: $blue;
 $title-bar-background-color: $black-ter;
 $title-bar-text-color: $white-ter;
 $title-bar-height: 6rem;
@@ -39,6 +39,10 @@ aside {
             padding-right: 0;
 
             color: $white-ter;
+            &:hover {
+                background-color: $white-ter;
+                color: $navbar-background-color;
+            }
             &.active {
                 color: $primary;
             }
@@ -85,9 +89,9 @@ aside {
         .logout, .toggle-size {
             a {
                 color: $white;
-                background-color: $navbar-highlight-color;
+                background-color: $navbar-alternative-color;
                 &:hover {
-                    color: $navbar-highlight-color;
+                    color: $navbar-alternative-color;
                     background-color: $white;
                 }
             }

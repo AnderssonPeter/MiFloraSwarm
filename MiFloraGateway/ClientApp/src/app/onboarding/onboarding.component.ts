@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { SettingDefinitions, StringSetting, StringSettingType, BooleanSetting, NumberSetting } from '../settings';
 import { SetupModel, Settings, ErrorResult } from '../api/rest/rest.client';
 import OnboardingService from './onboarding.service';
-import DynamicForm, { FieldType, FieldRequirment } from '../dynamic.form/dynamic.form';
+import DynamicForm from '../dynamic.form/dynamic.form';
+import { FieldRequirment } from "../dynamic.form/FieldRequirment";
+import { FieldType } from "../dynamic.form/FieldType";
 import { Router } from '@angular/router';
 
 @Component({
