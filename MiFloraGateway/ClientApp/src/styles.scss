@@ -1,0 +1,37 @@
+/* You can add global styles to this file, and also import other style files */
+@charset "utf-8";
+@import "~src/variables.scss";
+@import "~bulma/bulma";
+@import "~bulma-switch/src/sass/index";
+
+html {
+    overflow-y: auto;
+}
+
+.ng-invalid.ng-touched {
+    @extend .is-danger;
+}
+
+:not(tbody).loading {
+    background-color: rgba(0, 0, 0, 0.1);
+    background-image: url(assets/loading_black.png);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+tbody.loading {
+    position: relative;
+}
+
+tbody.loading:after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    background-image: url(assets/loading_black.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    content: "";
+}

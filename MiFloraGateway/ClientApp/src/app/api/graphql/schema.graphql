@@ -1,0 +1,381 @@
+schema {
+    query: RootQuery
+    mutation: Mutation
+}
+
+scalar Int
+scalar Float
+scalar Boolean
+scalar String
+scalar ID
+scalar Date
+scalar DateTimeOffset
+scalar TimeSpan
+
+
+enum LogEntryEvent {
+	Scan
+	GetValues
+	GetFirmwareAndBattery
+	Add
+	Edit
+	Delete
+}
+
+enum LogEntryResult {
+	Failed
+	Successful
+}
+
+enum Settings {
+	UpdateBatteryAndVersionCron
+	UpdateValuesCron
+	MQTTClientId
+	MQTTServerAddress
+	MQTTPort
+	MQTTUsername
+	MQTTPassword
+	MQTTUseTLS
+}
+
+enum SortOrder {
+	Ascending
+	Descending
+}
+
+enum DeviceSortField {
+	MACAddress
+	IPAddress
+	Name
+}
+
+
+type RootQuery {
+	"Return a Device by its Id"
+	device(id: Int!): Device
+	"Pagination. [defaults: page = 1, pageSize = 10, search = \"\", orderBy = \"name\", sortAsc = true]"
+	devicePager(page: Int!, pageSize: Int!, search: String, orderBy: DeviceSortField!, sortOrder: SortOrder!): DevicePagination
+	devices: [Device!]
+	deviceSensorDistances: [DeviceSensorDistance!]
+	devicesTags: [DeviceTag!]
+	logEntries: [LogEntry!]
+	"Return a LogEntry by its Id"
+	logEntry(id: Int!): LogEntry
+	"Return a Plant by its Id"
+	plant(id: Int!): Plant
+	plantBasics: [PlantBasic!]
+	plantMaintenance: [PlantMaintenance!]
+	plantParameters: [PlantParameters!]
+	plants: [Plant!]
+	"Return a Sensor by its Id"
+	sensor(id: Int!): Sensor
+	sensorBatteryReadings: [SensorBatteryAndVersionReading!]
+	sensorDataReadings: [SensorDataReading!]
+	sensors: [Sensor!]
+	sensorTags: [SensorTag!]
+	settings: [Setting!]
+	"Return a IdentityUser by its Id"
+	user(id: String!): IdentityUser
+	users: [IdentityUser!]
+
+}
+
+"Information about subscriptions"
+type SubscriptionType {
+	name: String
+}
+
+type Device {
+	macAddress: String
+	ipAddress: String
+	port: Int!
+	name: String
+	sensorDistances: [DeviceSensorDistance!]
+	tags: [DeviceTag!]
+	logs: [LogEntry!]
+	id: Int!
+	"Contains all the failure times over the last 24h"
+	failuresLast24Hours: [DeviceError!]
+}
+
+type DeviceSensorDistance {
+	device: Device
+	sensor: Sensor
+	when: Date!
+	deviceId: Int!
+	sensorId: Int!
+	rssi: Int
+}
+
+type Sensor {
+	mACAddress: String
+	name: String
+	plant: Plant
+	deviceDistances: [DeviceSensorDistance!]
+	batteryAndVersionReadings: [SensorBatteryAndVersionReading!]
+	dataReadings: [SensorDataReading!]
+	tags: [SensorTag!]
+	logs: [LogEntry!]
+	id: Int!
+}
+
+type Plant {
+	latinName: String
+	alias: String
+	display: String
+	imageUrl: String
+	basic: PlantBasic
+	maintenance: PlantMaintenance
+	parameters: PlantParameters
+	id: Int!
+}
+
+type PlantBasic {
+	plantId: Int!
+	plant: Plant
+	blooming: String
+	category: String
+	color: String
+	floralLanguage: String
+	origin: String
+	production: String
+}
+
+type PlantMaintenance {
+	plantId: Int!
+	plant: Plant
+	fertilization: String
+	pruning: String
+	size: String
+	soil: String
+	sunlight: String
+	watering: String
+}
+
+type PlantParameters {
+	plantId: Int!
+	plant: Plant
+	environmentHumidity: Range
+	lightLux: Range
+	lightMmol: Range
+	soilFertility: Range
+	soilHumidity: Range
+	temperature: Range
+}
+
+type Range {
+	min: Int
+	max: Int
+}
+
+type SensorBatteryAndVersionReading {
+	sensorId: Int!
+	sensor: Sensor
+	when: Date!
+	battery: Int!
+	version: Version
+}
+
+type Version {
+	major: Int!
+	minor: Int!
+	build: Int!
+	revision: Int!
+	majorRevision: Int!
+	minorRevision: Int!
+}
+
+type SensorDataReading {
+	sensorId: Int!
+	sensor: Sensor
+	when: Date!
+	moisture: Int!
+	brightness: Int!
+	temperature: Float!
+	conductivity: Int!
+}
+
+type SensorTag {
+	sensorId: Int!
+	sensor: Sensor
+	tag: String
+	value: String
+}
+
+type LogEntry {
+	id: Int!
+	deviceId: Int
+	device: Device
+	sensorId: Int
+	sensor: Sensor
+	plantId: Int
+	plant: Plant
+	userId: String
+	user: IdentityUser
+	when: Date!
+	duration: TimeSpan!
+	event: LogEntryEvent!
+	result: LogEntryResult!
+	message: String
+}
+
+type IdentityUser {
+	id: String
+	userName: String
+	normalizedUserName: String
+	email: String
+	normalizedEmail: String
+	emailConfirmed: Boolean!
+	securityStamp: String
+	concurrencyStamp: String
+	phoneNumber: String
+	phoneNumberConfirmed: Boolean!
+	twoFactorEnabled: Boolean!
+	lockoutEnd: DateTimeOffset
+	lockoutEnabled: Boolean!
+	accessFailedCount: Int!
+}
+
+type DeviceTag {
+	deviceId: Int!
+	device: Device
+	tag: String
+	value: String
+}
+
+type Setting {
+	key: Settings!
+	value: String
+	lastChanged: Date
+}
+
+type EditDeviceParameters {
+	id: Int!
+	mACAddress: String
+	iPAddress: String
+	port: Int!
+	name: String
+}
+
+type EditSensorParameters {
+	id: Int!
+	mACAddress: String
+	name: String
+	plantId: Int
+}
+
+type DeleteDeviceParameters {
+	id: Int!
+}
+
+type AddDeviceParameters {
+	mACAddress: String
+	iPAddress: String
+	port: Int!
+	name: String
+}
+
+type AddSensorParameters {
+	mACAddress: String
+	name: String
+	plantId: Int
+}
+
+"DeviceError"
+type DeviceError {
+	when: Date!
+	message: String
+}
+
+type DeleteSensorParameters {
+	id: Int!
+}
+
+type AddPlantParameters {
+	latinName: String
+	alias: String
+	display: String
+	imageUrl: String
+	blooming: String
+	category: String
+	color: String
+	floralLanguage: String
+	origin: String
+	production: String
+	fertilization: String
+	pruning: String
+	size: String
+	soil: String
+	sunlight: String
+	watering: String
+	minEnvironmentHumidity: Int
+	maxEnvironmentHumidity: Int
+	minLightLux: Int
+	maxLightLux: Int
+	minLightMmol: Int
+	maxLightMmol: Int
+	minSoilFertility: Int
+	maxSoilFertility: Int
+	minSoilHumidity: Int
+	maxSoilHumidity: Int
+	minTemperature: Int
+	maxTemperature: Int
+}
+
+type EditPlantParameters {
+	id: Int!
+	latinName: String
+	alias: String
+	display: String
+	imageUrl: String
+	blooming: String
+	category: String
+	color: String
+	floralLanguage: String
+	origin: String
+	production: String
+	fertilization: String
+	pruning: String
+	size: String
+	soil: String
+	sunlight: String
+	watering: String
+	minEnvironmentHumidity: Int
+	maxEnvironmentHumidity: Int
+	minLightLux: Int
+	maxLightLux: Int
+	minLightMmol: Int
+	maxLightMmol: Int
+	minSoilFertility: Int
+	maxSoilFertility: Int
+	minSoilHumidity: Int
+	maxSoilHumidity: Int
+	minTemperature: Int
+	maxTemperature: Int
+}
+
+type DeletePlantParameters {
+	id: Int!
+}
+
+"Device Pagination"
+type DevicePagination {
+	"collection of devices"
+	devices: [Device!]
+	"total pages based on page size"
+	pageCount: Int!
+}
+
+type Mutation {
+	addDevice(mACAddress: String!, iPAddress: String!, port: Int!, name: String!): Device
+	editDevice(id: Int!, mACAddress: String!, iPAddress: String!, port: Int!, name: String!): Device
+	deleteDevice(id: Int!): Device
+	scanForDevices: [Sensor!]
+	addSensor(mACAddress: String!, name: String!, plantId: Int): Sensor
+	editSensor(id: Int!, mACAddress: String!, name: String!, plantId: Int): Sensor
+	deleteSensor(id: Int!): Sensor
+	addPlant(latinName: String!, alias: String!, display: String!, imageUrl: String!, blooming: String, category: String, color: String, floralLanguage: String, origin: String, production: String, fertilization: String, pruning: String, size: String, soil: String, sunlight: String, watering: String, minEnvironmentHumidity: Int, maxEnvironmentHumidity: Int, minLightLux: Int, maxLightLux: Int, minLightMmol: Int, maxLightMmol: Int, minSoilFertility: Int, maxSoilFertility: Int, minSoilHumidity: Int, maxSoilHumidity: Int, minTemperature: Int, maxTemperature: Int): Plant
+	editPlant(id: Int!, latinName: String!, alias: String!, display: String!, imageUrl: String!, blooming: String, category: String, color: String, floralLanguage: String, origin: String, production: String, fertilization: String, pruning: String, size: String, soil: String, sunlight: String, watering: String, minEnvironmentHumidity: Int, maxEnvironmentHumidity: Int, minLightLux: Int, maxLightLux: Int, minLightMmol: Int, maxLightMmol: Int, minSoilFertility: Int, maxSoilFertility: Int, minSoilHumidity: Int, maxSoilHumidity: Int, minTemperature: Int, maxTemperature: Int): Plant
+	deletePlant(id: Int!): Plant
+
+}

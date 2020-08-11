@@ -5,7 +5,7 @@
 
 enum Status {Success, NotFound};
 
-static const String ESPFloraVersion = "1.0";
+static const String ESPFloraVersion = "0.1";
 
 typedef struct {
     String address;
@@ -17,6 +17,7 @@ typedef struct {
     Status status;
     String version;
     int battery;
+    int rssi;
 } SensorVersionAndBattery;
 
 typedef struct {
@@ -25,9 +26,13 @@ typedef struct {
     int brightness;
     float temperature;
     int conductivity;
+    int rssi;
 } SensorValues;
 
 typedef struct {
+    String name;
+    String uptime;
+    String address;
 
     //Internal RAM
     uint32_t heapSize; //total heap size

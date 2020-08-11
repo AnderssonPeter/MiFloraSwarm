@@ -1,0 +1,18 @@
+@import "~src/_variables.scss";
+
+:host {
+    width: 100%;
+}
+
+.control.status-text {
+    align-items: center;
+    display: flex;
+
+    &.is-error {
+        color: $warning;
+    }
+
+    &.is-success {
+        color: $success;
+    }
+}

@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiFloraGateway", "MiFloraGateway\MiFloraGateway.csproj", "{3C7833DC-4233-487D-8442-396E2580F492}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3B9A8A10-F8AF-4A64-BBF3-4D64BFCACDA9}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		NSwag.nswag = NSwag.nswag
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreFlora", "CoreFlora\CoreFlora.csproj", "{15E55D02-E095-43CE-A5EF-9CD23EC7D0FD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiFlora.Common", "MiFlora.Common\MiFlora.Common.csproj", "{25CFE155-E202-4B19-8BA8-7873F22B3484}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuaHuaCaoCao.Client", "HuaHuaCaoCao.Client\HuaHuaCaoCao.Client.csproj", "{B38FD830-0789-499D-A613-18D5C61188E2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuaHuaCaoCao.Example", "HuaHuaCaoCao.Example\HuaHuaCaoCao.Example.csproj", "{79B15847-5AE0-4AA9-B367-3A8BD12A024E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL Scripts", "SQL Scripts", "{5309B884-3CF5-492F-82C8-9F0E69828620}"
+	ProjectSection(SolutionItems) = preProject
+		SQL Scripts\CreateRandomDevice.sql = SQL Scripts\CreateRandomDevice.sql
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C7833DC-4233-487D-8442-396E2580F492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C7833DC-4233-487D-8442-396E2580F492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C7833DC-4233-487D-8442-396E2580F492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C7833DC-4233-487D-8442-396E2580F492}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15E55D02-E095-43CE-A5EF-9CD23EC7D0FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15E55D02-E095-43CE-A5EF-9CD23EC7D0FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15E55D02-E095-43CE-A5EF-9CD23EC7D0FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15E55D02-E095-43CE-A5EF-9CD23EC7D0FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25CFE155-E202-4B19-8BA8-7873F22B3484}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25CFE155-E202-4B19-8BA8-7873F22B3484}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25CFE155-E202-4B19-8BA8-7873F22B3484}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25CFE155-E202-4B19-8BA8-7873F22B3484}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B38FD830-0789-499D-A613-18D5C61188E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B38FD830-0789-499D-A613-18D5C61188E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B38FD830-0789-499D-A613-18D5C61188E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B38FD830-0789-499D-A613-18D5C61188E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79B15847-5AE0-4AA9-B367-3A8BD12A024E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79B15847-5AE0-4AA9-B367-3A8BD12A024E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79B15847-5AE0-4AA9-B367-3A8BD12A024E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79B15847-5AE0-4AA9-B367-3A8BD12A024E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F0119E47-5B65-486B-A9E3-D70DE0594F4E}
+	EndGlobalSection
+EndGlobal

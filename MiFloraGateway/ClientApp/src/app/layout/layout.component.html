@@ -1,0 +1,85 @@
+<nav class="navbar is-hidden-tablet" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <div class="navbar-item has-text-weight-bold">
+            <span class="icon">
+                <fa-icon [icon]="currentPage.icon"></fa-icon>
+            </span>
+            {{currentPage.label}}
+        </div>
+
+        <a role="button" class="navbar-burger burger" aria-label="menu" (click)="toggle()">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+    <div class="navbar-menu" [ngClass]="{ 'is-active': expanded }">
+        <div class="navbar-start">
+            <a class="navbar-item" *ngFor="let menuItem of menuItems" [routerLink]="menuItem.route" routerLinkActive="is-active">
+                <span class="icon is-small">
+                    <fa-icon [icon]="menuItem.icon"></fa-icon>
+                </span>
+                <span>{{menuItem.label}}</span>
+            </a>
+        </div>
+
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <div class="buttons">
+                    <a class="button is-link">
+                        <span class="icon is-small">
+                            <fa-icon [icon]="icons.logout"></fa-icon>
+                        </span>
+                        <strong>Logout</strong>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="columns is-gapless">
+    <aside class="column is-narrow is-hidden-mobile">
+        <nav class="menu" [ngClass]="{ 'is-expanded': expanded }">
+            <div class="logo">
+                <img src="assets/logo.svg" />
+            </div>
+            <ul class="menu-list middle-items">
+                <li *ngFor="let menuItem of menuItems" [title]="menuItem.label">
+                    <a class="has-text-weight-semibold" [routerLink]="menuItem.route" routerLinkActive="is-active">
+                        <span class="icon is-small">
+                            <fa-icon [icon]="menuItem.icon"></fa-icon>
+                        </span>
+                        <span class="menu-item-label">{{menuItem.label}}</span>
+                    </a>
+                </li>
+            </ul>
+            <ul class="menu-list">
+                <li class="toggle-size">
+                    <a class="has-text-weight-semibold" (click)="toggle()" [title]="expanded ? 'contract' : 'Expand'">
+                        <span class="icon is-small">
+                            <fa-icon [icon]="expanded ? icons.contract : icons.expand"></fa-icon>
+                        </span>
+                        <span class="menu-item-label">Contract</span>
+                    </a>
+                </li>
+                <li class="logout">
+                    <a class="has-text-weight-semibold" (click)="logout()" title="Logout">
+                        <span class="icon is-small">
+                            <fa-icon [icon]="icons.logout"></fa-icon>
+                        </span>
+                        <span class="menu-item-label">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="column" [ngClass]="{ loading: loading }">
+        <div class="is-title-bar has-text-weight-bold is-hidden-mobile">
+            <span class="icon">
+                <fa-icon [icon]="currentPage.icon"></fa-icon>
+            </span>
+            {{currentPage.label}}
+        </div>
+        <router-outlet></router-outlet>
+    </main>
+</div>
